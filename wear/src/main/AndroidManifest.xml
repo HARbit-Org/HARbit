@@ -4,6 +4,9 @@
     <uses-feature android:name="android.hardware.type.watch" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Gyro doesn't need runtime permission, but we run a ForegroundService -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -41,6 +44,11 @@
                 android:resource="@drawable/tile_preview" />
         </service>
 
+        <service
+            android:name=".sensors.GyroService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />
@@ -53,7 +61,7 @@
         -->
         <meta-data
             android:name="com.google.android.wearable.standalone"
-            android:value="true" />
+            android:value="false" />
 
         <activity
             android:name=".presentation.MainActivity"

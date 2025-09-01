@@ -25,48 +25,38 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.example.harbit_wearos.R
 import com.example.harbit_wearos.presentation.theme.HARbitWearOSTheme
+import android.content.Intent
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.wear.compose.material.Button
+import com.example.harbit_wearos.sensors.GyroService
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
-
-        setTheme(android.R.style.Theme_DeviceDefault)
-
         setContent {
-            WearApp("Android")
+            var running by remember { mutableStateOf(false) }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(if (running) "Streaming gyroscope…" else "Ready")
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = {
+                        if (!running) {
+                            ContextCompat.startForegroundService(
+                                this@MainActivity, Intent(this@MainActivity, GyroService::class.java)
+                            )
+                        } else {
+                            stopService(Intent(this@MainActivity, GyroService::class.java))
+                        }
+                        running = !running
+                    }) {
+                        Text(if (running) "Stop" else "Start")
+                    }
+                }
+            }
         }
     }
-}
-
-@Composable
-fun WearApp(greetingName: String) {
-    HARbitWearOSTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
-        ) {
-            TimeText()
-            Greeting(greetingName = greetingName)
-        }
-    }
-}
-
-@Composable
-fun Greeting(greetingName: String) {
-    Text(
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colors.primary,
-        text = stringResource(R.string.hello_world, greetingName)
-    )
-}
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
 }
