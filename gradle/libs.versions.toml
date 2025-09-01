@@ -3,7 +3,7 @@ activityComposeVersion = "1.9.2"
 agp = "8.12.2"
 composeBomVersion = "2024.06.00"
 googlePlayServicesWearable = "19.0.0"
-kotlin = "2.0.21"
+kotlin = "2.1.10"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -31,6 +31,7 @@ tilesToolingPreview = "1.4.0"
 horologistComposeTools = "0.6.17"
 horologistTiles = "0.6.17"
 watchfaceComplicationsDataSourceKtx = "1.2.1"
+ksp = "2.1.10-1.0.31"
 
 [libraries]
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomRuntime" }
@@ -77,4 +78,4 @@ ui = { module = "androidx.compose.ui:ui" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
