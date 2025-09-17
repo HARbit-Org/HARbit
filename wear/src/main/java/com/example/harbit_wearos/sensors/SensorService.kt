@@ -8,13 +8,12 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import com.google.android.gms.wearable.Wearable
 import java.nio.ByteBuffer
 
-class GyroService : LifecycleService(), SensorEventListener {
+class SensorService : LifecycleService(), SensorEventListener {
 
     companion object {
         private const val CHANNEL_ID = "gyro_stream"

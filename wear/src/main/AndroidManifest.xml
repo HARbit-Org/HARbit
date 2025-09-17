@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Gyro doesn't need runtime permission, but we run a ForegroundService -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -45,7 +46,7 @@
         </service>
 
         <service
-            android:name=".sensors.GyroService"
+            android:name=".sensors.SensorService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
