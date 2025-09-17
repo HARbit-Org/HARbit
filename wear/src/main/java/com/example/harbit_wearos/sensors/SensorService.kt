@@ -42,16 +42,56 @@ class SensorService : LifecycleService(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
 
-        gyro?.let {
-            sensorManager.registerListener(
-                this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
-            )
-        } ?: stopSelf() // no gyro available
+        // Add message listener for connection validation from mobile
+        Wearable.getMessageClient(this).addListener { messageEvent ->
+            if (messageEvent.path == "/mobile-connected") {
+                android.util.Log.d("GyroService", "Mobile connection confirmed from ${messageEvent.sourceNodeId}")
+                // Send a small test payload to confirm bidirectional communication
+                val testPayload = ByteBuffer.allocate(BYTES_PER_SAMPLE).apply {
+                    putLong(System.nanoTime())
+                    putFloat(0f)
+                    putFloat(0f)
+                    putFloat(0f)
+                }.array()
+                
+                msgClient.sendMessage(messageEvent.sourceNodeId, MSG_PATH, testPayload)
+                    .addOnSuccessListener {
+                        android.util.Log.d("GyroService", "Sent test data to confirm connection")
+                    }
+            }
+        }
+
+        // Verify if we have connected devices before starting the sensor
+        nodeClient.connectedNodes.addOnSuccessListener { nodes ->
+            if (nodes.isEmpty()) {
+                android.util.Log.w("GyroService", "No connected nodes found!")
+            } else {
+                android.util.Log.d("GyroService", "Connected to ${nodes.size} node(s): ${nodes.joinToString { it.displayName }}")
+            }
+            
+            // Start the sensor anyway, as the phone might connect later
+            gyro?.let {
+                sensorManager.registerListener(
+                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
+                )
+            } ?: stopSelf() // no gyro available
+        }.addOnFailureListener { e ->
+            android.util.Log.e("GyroService", "Failed to get connected nodes: ${e.message}")
+            
+            // Start the sensor anyway
+            gyro?.let {
+                sensorManager.registerListener(
+                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
+                )
+            } ?: stopSelf() // no gyro available
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
+        // No need to explicitly remove message listeners in a service that's being destroyed
+        android.util.Log.d("GyroService", "Service is being destroyed")
     }
 
     private fun makeNotification(): Notification {
@@ -94,12 +134,24 @@ class SensorService : LifecycleService(), SensorEventListener {
         batchBuf.clear()
         batchCount = 0
 
-        // Send to all connected nodes (phone) — fire-and-forget is OK for streaming
+        // Send to all connected nodes (phone) with added error handling
         nodeClient.connectedNodes.addOnSuccessListener { nodes ->
+            if (nodes.isEmpty()) {
+                android.util.Log.w("GyroService", "No connected nodes found to send data to!")
+                return@addOnSuccessListener
+            }
+            
             nodes.forEach { node ->
                 msgClient.sendMessage(node.id, MSG_PATH, payload)
-                // (optional) add failure listener/logging here
+                    .addOnSuccessListener {
+                        android.util.Log.d("GyroService", "Successfully sent data to ${node.displayName}")
+                    }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("GyroService", "Failed to send data to ${node.displayName}: ${e.message}")
+                    }
             }
+        }.addOnFailureListener { e ->
+            android.util.Log.e("GyroService", "Failed to get connected nodes: ${e.message}")
         }
     }
 
