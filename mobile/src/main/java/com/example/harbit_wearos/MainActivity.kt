@@ -44,7 +44,7 @@ fun GyroScreen() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Gyroscope Data", style = MaterialTheme.typography.headlineMedium)
+            Text("Sensor Data", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
             
             // Scrollable area for the gyro data
@@ -78,10 +78,10 @@ fun GyroScreen() {
 }
 
 class GyroViewModel(application: Application) : AndroidViewModel(application), MessageClient.OnMessageReceivedListener {
-    private val _gyroText = MutableStateFlow("Waiting for gyroscope data...")
+    private val _gyroText = MutableStateFlow("Waiting for sensor data...")
     val gyroText = _gyroText.asStateFlow()
 
-    private val MSG_PATH = "/gyro"
+    private val MSG_PATH = "/sensor_data"
     private val messageClient = Wearable.getMessageClient(application)
     private val nodeClient = Wearable.getNodeClient(application)
 
@@ -127,19 +127,52 @@ class GyroViewModel(application: Application) : AndroidViewModel(application), M
             val payload = event.data
             val buf = java.nio.ByteBuffer.wrap(payload)
             val sb = StringBuilder()
+            
             try {
-                while (buf.remaining() >= 8 + 3 * 4) {
+                // Each sample is [long timestamp][byte sensorType][float x][float y][float z]
+                // sensorType: 1 = accelerometer, 2 = gyroscope
+                val accelData = mutableMapOf<Long, Triple<Float, Float, Float>>()
+                val gyroData = mutableMapOf<Long, Triple<Float, Float, Float>>()
+                
+                while (buf.remaining() >= 8 + 1 + 3 * 4) { // timestamp + sensorType + 3 floats
                     val timestamp = buf.long
+                    val sensorType = buf.get()
                     val x = buf.float
                     val y = buf.float
                     val z = buf.float
-                    sb.append("timestamp: $timestamp\nx: $x\ny: $y\nz: $z\n\n")
+                    
+                    // Store based on sensor type
+                    if (sensorType.toInt() == 1) { // Accelerometer
+                        accelData[timestamp] = Triple(x, y, z)
+                    } else if (sensorType.toInt() == 2) { // Gyroscope
+                        gyroData[timestamp] = Triple(x, y, z)
+                    }
                 }
+                
+                // Combine and display data, sorted by timestamp
+                val allTimestamps = (accelData.keys + gyroData.keys).sorted()
+                
+                sb.append("Received ${accelData.size} accelerometer samples and ${gyroData.size} gyroscope samples\n\n")
+                
+                for (timestamp in allTimestamps) {
+                    sb.append("timestamp: $timestamp\n")
+                    
+                    accelData[timestamp]?.let { (x, y, z) ->
+                        sb.append("ACCEL: x=$x, y=$y, z=$z\n")
+                    }
+                    
+                    gyroData[timestamp]?.let { (x, y, z) ->
+                        sb.append("GYRO: x=$x, y=$y, z=$z\n")
+                    }
+                    
+                    sb.append("\n")
+                }
+                
                 _gyroText.value = sb.toString()
-                android.util.Log.d("GyroViewModel", "Received gyro data from ${event.sourceNodeId}")
+                android.util.Log.d("SensorViewModel", "Received ${allTimestamps.size} sensor readings from ${event.sourceNodeId}")
             } catch (e: Exception) {
                 _gyroText.value = "Error parsing data: ${e.message}"
-                android.util.Log.e("GyroViewModel", "Error parsing gyro data", e)
+                android.util.Log.e("SensorViewModel", "Error parsing sensor data", e)
             }
         }
     }

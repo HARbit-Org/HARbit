@@ -28,7 +28,12 @@ class MainActivity : ComponentActivity() {
             var running by remember { mutableStateOf(false) }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(if (running) "Streaming gyroscope…" else "Ready")
+                    Text(if (running) "Streaming sensors..." else "Ready")
+                    Spacer(Modifier.height(8.dp))
+                    if (running) {
+                        Text("Accelerometer + Gyroscope", style = androidx.wear.compose.material.MaterialTheme.typography.caption2)
+                        Text("@ 20Hz synchronized", style = androidx.wear.compose.material.MaterialTheme.typography.caption2)
+                    }
                     Spacer(Modifier.height(16.dp))
                     Button(onClick = {
                         if (!running) {
