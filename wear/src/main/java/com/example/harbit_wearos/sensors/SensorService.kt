@@ -22,18 +22,15 @@ class SensorService : LifecycleService(), SensorEventListener {
         private const val NOTIF_ID = 1
         private const val MSG_PATH = "/sensor_data"
         
-        // WISDM-like approach with 20 Hz fixed sampling rate
+        // 20 Hz sampling rate for each sensor
         private const val SAMPLE_RATE_HZ = 20
         private const val SENSOR_PERIOD_US = (1000000 / SAMPLE_RATE_HZ) // 50,000 us = 20 Hz
-        private const val MAX_LATENCY_US = 500_000  // 500 ms max latency
-        
-        // Quantization for timestamp alignment (in nanoseconds)
-        private const val QUANTIZATION_NS = (1000000000L / SAMPLE_RATE_HZ) // Quantize to 20 Hz period
+        private const val MAX_LATENCY_US = 1_000_000  // 1 s max latency
         
         // batching ~1s at 20 Hz (20 samples)
         private const val BATCH_SAMPLES = 20
         
-        // Format: [long quantized_timestamp][byte sensorType][float x][float y][float z]
+        // Format: [long timestamp][byte sensorType][float x][float y][float z]
         // sensorType: 1 = accelerometer, 2 = gyroscope
         private const val BYTES_PER_SAMPLE = 8 + 1 + 3 * 4 // timestamp + sensorType + 3 floats
     }
@@ -47,9 +44,6 @@ class SensorService : LifecycleService(), SensorEventListener {
 
     private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE * 2) // Twice the size to accommodate both sensors
     private var batchCount = 0
-    
-    // Used for timestamp quantization
-    private var lastSentTimestamp = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -75,7 +69,7 @@ class SensorService : LifecycleService(), SensorEventListener {
                 android.util.Log.d("SensorService", "Mobile connection confirmed from ${messageEvent.sourceNodeId}")
                 // Send a small test payload to confirm bidirectional communication
                 val testPayload = ByteBuffer.allocate(BYTES_PER_SAMPLE).apply {
-                    putLong(quantizeTimestamp(SystemClock.elapsedRealtimeNanos()))
+                    putLong(SystemClock.elapsedRealtimeNanos())
                     put(1) // 1 = accelerometer
                     putFloat(0f)
                     putFloat(0f)
@@ -147,11 +141,6 @@ class SensorService : LifecycleService(), SensorEventListener {
             }
         }
     }
-    
-    // Helper method to quantize timestamps for better sensor alignment
-    private fun quantizeTimestamp(timestamp: Long): Long {
-        return (timestamp / QUANTIZATION_NS) * QUANTIZATION_NS
-    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -176,10 +165,8 @@ class SensorService : LifecycleService(), SensorEventListener {
     }
 
     override fun onSensorChanged(e: SensorEvent) {
-        // Use system clock for consistent timestamps across sensors
-        val realTimeNanos = SystemClock.elapsedRealtimeNanos()
-        // Quantize timestamp to fixed intervals for better alignment
-        val quantizedTimestamp = quantizeTimestamp(realTimeNanos)
+        // Use the sensor event's timestamp directly (no quantization/alignment)
+        val timestamp = e.timestamp
         
         // Check if we have enough space in buffer
         if (batchBuf.remaining() < BYTES_PER_SAMPLE) {
@@ -195,11 +182,11 @@ class SensorService : LifecycleService(), SensorEventListener {
         
         // Log the data
         val sensorName = if (sensorType.toInt() == 1) "Accelerometer" else "Gyroscope"
-        android.util.Log.d("SensorService", "$sensorName - timestamp: $quantizedTimestamp, " +
+        android.util.Log.d("SensorService", "$sensorName - timestamp: $timestamp, " +
                            "x: ${e.values[0]}, y: ${e.values[1]}, z: ${e.values[2]}")
         
-        // Pack: [long quantized_timestamp][byte sensorType][float x][float y][float z]
-        batchBuf.putLong(quantizedTimestamp)
+        // Pack: [long timestamp][byte sensorType][float x][float y][float z]
+        batchBuf.putLong(timestamp)
         batchBuf.put(sensorType)
         batchBuf.putFloat(e.values[0])
         batchBuf.putFloat(e.values[1])
@@ -213,6 +200,7 @@ class SensorService : LifecycleService(), SensorEventListener {
 
     private fun sendAndReset() {
         if (batchCount == 0) return
+        val samples = batchCount
         val payload = ByteArray(batchBuf.position())
         batchBuf.flip()
         batchBuf.get(payload)
@@ -229,7 +217,7 @@ class SensorService : LifecycleService(), SensorEventListener {
             nodes.forEach { node ->
                 msgClient.sendMessage(node.id, MSG_PATH, payload)
                     .addOnSuccessListener {
-                        android.util.Log.d("SensorService", "Successfully sent batch of $batchCount sensor readings to ${node.displayName}")
+                        android.util.Log.d("SensorService", "Successfully sent batch of $samples sensor readings to ${node.displayName}")
                     }
                     .addOnFailureListener { e ->
                         android.util.Log.e("SensorService", "Failed to send data to ${node.displayName}: ${e.message}")

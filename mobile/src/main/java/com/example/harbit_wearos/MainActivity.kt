@@ -1,7 +1,11 @@
 package com.example.harbit_wearos
 
 import android.app.Application
+import android.content.ContentValues
+import android.content.Context
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -20,6 +24,12 @@ import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.lifecycle.ViewModelProvider
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,11 +42,26 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Serializable
+data class SensorReading(
+    val timestamp: Long,
+    val x: Float,
+    val y: Float,
+    val z: Float
+)
+
+@Serializable
+data class SensorDataExport(
+    val gyro: List<SensorReading>,
+    val accel: List<SensorReading>
+)
+
 @Composable
 fun GyroScreen() {
     val context = LocalContext.current.applicationContext as Application
     val viewModel: GyroViewModel = viewModel(factory = ViewModelProvider.AndroidViewModelFactory(context))
     val gyroText by viewModel.gyroText.collectAsState()
+    val sensorCount by viewModel.sensorCount.collectAsState()
     
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -45,6 +70,7 @@ fun GyroScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Sensor Data", style = MaterialTheme.typography.headlineMedium)
+            Text("Collected: $sensorCount samples", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(16.dp))
             
             // Scrollable area for the gyro data
@@ -62,16 +88,31 @@ fun GyroScreen() {
                 )
             }
             
-            // Add a button to refresh the connection
+            // Buttons row
             Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { 
-                    // Cast to our view model type to access the function
-                    (viewModel as? GyroViewModel)?.checkWearConnection() 
-                },
-                modifier = Modifier.fillMaxWidth(0.8f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Refresh Connection")
+                Button(
+                    onClick = { viewModel.checkWearConnection() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Refresh")
+                }
+                Button(
+                    onClick = { viewModel.clearData() },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Clear")
+                }
+                Button(
+                    onClick = { viewModel.downloadJson(context) },
+                    modifier = Modifier.weight(1f),
+                    enabled = sensorCount > 0
+                ) {
+                    Text("Download")
+                }
             }
         }
     }
@@ -80,10 +121,17 @@ fun GyroScreen() {
 class GyroViewModel(application: Application) : AndroidViewModel(application), MessageClient.OnMessageReceivedListener {
     private val _gyroText = MutableStateFlow("Waiting for sensor data...")
     val gyroText = _gyroText.asStateFlow()
+    
+    private val _sensorCount = MutableStateFlow(0)
+    val sensorCount = _sensorCount.asStateFlow()
 
     private val MSG_PATH = "/sensor_data"
     private val messageClient = Wearable.getMessageClient(application)
     private val nodeClient = Wearable.getNodeClient(application)
+    
+    // Store sensor data for export
+    private val gyroData = mutableListOf<SensorReading>()
+    private val accelData = mutableListOf<SensorReading>()
 
     init {
         // Register listener immediately
@@ -131,8 +179,7 @@ class GyroViewModel(application: Application) : AndroidViewModel(application), M
             try {
                 // Each sample is [long timestamp][byte sensorType][float x][float y][float z]
                 // sensorType: 1 = accelerometer, 2 = gyroscope
-                val accelData = mutableMapOf<Long, Triple<Float, Float, Float>>()
-                val gyroData = mutableMapOf<Long, Triple<Float, Float, Float>>()
+                var sampleCount = 0
                 
                 while (buf.remaining() >= 8 + 1 + 3 * 4) { // timestamp + sensorType + 3 floats
                     val timestamp = buf.long
@@ -141,39 +188,86 @@ class GyroViewModel(application: Application) : AndroidViewModel(application), M
                     val y = buf.float
                     val z = buf.float
                     
-                    // Store based on sensor type
+                    // Store data based on sensor type
                     if (sensorType.toInt() == 1) { // Accelerometer
-                        accelData[timestamp] = Triple(x, y, z)
+                        accelData.add(SensorReading(timestamp, x, y, z))
                     } else if (sensorType.toInt() == 2) { // Gyroscope
-                        gyroData[timestamp] = Triple(x, y, z)
+                        gyroData.add(SensorReading(timestamp, x, y, z))
                     }
+                    
+                    sampleCount++
                 }
                 
-                // Combine and display data, sorted by timestamp
-                val allTimestamps = (accelData.keys + gyroData.keys).sorted()
+                _sensorCount.value = gyroData.size + accelData.size
                 
-                sb.append("Received ${accelData.size} accelerometer samples and ${gyroData.size} gyroscope samples\n\n")
+                sb.append("Total collected: ${gyroData.size} gyro + ${accelData.size} accel samples\n")
+                sb.append("Received $sampleCount new samples\n\n")
                 
-                for (timestamp in allTimestamps) {
-                    sb.append("timestamp: $timestamp\n")
-                    
-                    accelData[timestamp]?.let { (x, y, z) ->
-                        sb.append("ACCEL: x=$x, y=$y, z=$z\n")
+                // Display last few samples of each type
+                if (gyroData.isNotEmpty()) {
+                    sb.append("Recent GYRO samples:\n")
+                    gyroData.takeLast(3).forEach { gyro ->
+                        sb.append("  ${gyro.timestamp}: x=${String.format("%.3f", gyro.x)}, y=${String.format("%.3f", gyro.y)}, z=${String.format("%.3f", gyro.z)}\n")
                     }
-                    
-                    gyroData[timestamp]?.let { (x, y, z) ->
-                        sb.append("GYRO: x=$x, y=$y, z=$z\n")
-                    }
-                    
                     sb.append("\n")
                 }
                 
+                if (accelData.isNotEmpty()) {
+                    sb.append("Recent ACCEL samples:\n")
+                    accelData.takeLast(3).forEach { accel ->
+                        sb.append("  ${accel.timestamp}: x=${String.format("%.3f", accel.x)}, y=${String.format("%.3f", accel.y)}, z=${String.format("%.3f", accel.z)}\n")
+                    }
+                }
+                
                 _gyroText.value = sb.toString()
-                android.util.Log.d("SensorViewModel", "Received ${allTimestamps.size} sensor readings from ${event.sourceNodeId}")
+                android.util.Log.d("SensorViewModel", "Received $sampleCount sensor readings, total: ${gyroData.size}")
             } catch (e: Exception) {
                 _gyroText.value = "Error parsing data: ${e.message}"
                 android.util.Log.e("SensorViewModel", "Error parsing sensor data", e)
             }
+        }
+    }
+    
+    fun clearData() {
+        gyroData.clear()
+        accelData.clear()
+        _sensorCount.value = 0
+        _gyroText.value = "Data cleared. Waiting for new sensor data..."
+    }
+    
+    fun downloadJson(context: Context) {
+        try {
+            val sensorExport = SensorDataExport(
+                gyro = gyroData.toList(),
+                accel = accelData.toList()
+            )
+            
+            val json = Json { prettyPrint = true }
+            val jsonString = json.encodeToString(sensorExport)
+            
+            // Generate filename with timestamp
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
+            val filename = "sensor_data_${dateFormat.format(Date())}.json"
+            
+            // Save to Downloads folder
+            val resolver = context.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+            
+            val uri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
+            uri?.let {
+                resolver.openOutputStream(it)?.use { outputStream ->
+                    outputStream.write(jsonString.toByteArray())
+                }
+                _gyroText.value = "JSON downloaded to Downloads/$filename\nTotal samples: ${gyroData.size}"
+                android.util.Log.d("SensorViewModel", "JSON file saved: $filename")
+            }
+        } catch (e: IOException) {
+            _gyroText.value = "Error saving file: ${e.message}"
+            android.util.Log.e("SensorViewModel", "Error saving JSON", e)
         }
     }
 
