@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HARbit-WearOS"
+rootProject.name = "HARbit"
 include(":mobile")
 include(":wear")

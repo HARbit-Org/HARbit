@@ -1,4 +1,4 @@
-package com.example.harbit_wearos
+package com.example.harbit
 
 import org.junit.Test
 

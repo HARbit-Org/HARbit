@@ -1,4 +1,4 @@
-package com.example.harbit_wearos.tile
+package com.example.harbit.tile
 
 import android.content.Context
 import androidx.wear.protolayout.ColorBuilders.argb

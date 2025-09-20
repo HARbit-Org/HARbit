@@ -1,4 +1,4 @@
-package com.example.harbit_wearos.complication
+package com.example.harbit.complication
 
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType

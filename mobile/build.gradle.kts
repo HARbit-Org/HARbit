@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.harbit_wearos"
+    namespace = "com.example.harbit"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.harbit_wearos"
+        applicationId = "com.example.harbit"
         minSdk = 30
         targetSdk = 36
         versionCode = 1

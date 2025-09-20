@@ -1,10 +1,10 @@
-package com.example.harbit_wearos.presentation.theme
+package com.example.harbit.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.MaterialTheme
 
 @Composable
-fun HARbitWearOSTheme(
+fun HARbitTheme(
     content: @Composable () -> Unit
 ) {
     /**

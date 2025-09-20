@@ -1,4 +1,4 @@
-package com.example.harbit_wearos.sensors
+package com.example.harbit.sensors
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -13,7 +13,6 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import com.google.android.gms.wearable.Wearable
 import java.nio.ByteBuffer
-import kotlin.math.roundToLong
 
 class SensorService : LifecycleService(), SensorEventListener {
 
