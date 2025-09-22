@@ -11,7 +11,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            HARbitTheme {
+            HARbitTheme (
+                darkTheme = false,
+                dynamicColor = false
+            ) {
                 val navController = rememberNavController()
                 AppNavigation(
                     navController = navController,
