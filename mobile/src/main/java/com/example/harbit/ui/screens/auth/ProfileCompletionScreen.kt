@@ -1,9 +1,12 @@
 package com.example.harbit.ui.screens.auth
 
+import DatePicker
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -13,11 +16,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.harbit.ui.components.ButtonGroup
+
 // Using Material Design 3 theme colors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +39,7 @@ fun ProfileCompletionScreen(
     var userName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("john.doe@gmail.com") }
     var phone by remember { mutableStateOf("+51987654321") }
-    var birthDate by remember { mutableStateOf("17/08/2002") }
+    var birthDate by remember { mutableStateOf("DD/MM/AAAA") }
     var selectedGender by remember { mutableStateOf("Masculino") }
     var height by remember { mutableStateOf("72.3") }
     var weight by remember { mutableStateOf("176") }
@@ -44,22 +54,12 @@ fun ProfileCompletionScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Header with logo
-        Box(
+        Image(
+            painter = painterResource(id = com.example.harbit.R.drawable.logo),
+            contentDescription = "Logo",
             modifier = Modifier
-                .size(80.dp)
-                .background(
-                    MaterialTheme.colorScheme.primary,
-                    RoundedCornerShape(40.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = "HARbit Logo",
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(40.dp)
-            )
-        }
+                .width(128.dp)
+        )
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -92,11 +92,11 @@ fun ProfileCompletionScreen(
             onValueChange = { email = it },
             label = { Text("Correo electrónico preferido") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = false,
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledBorderColor = Color.Gray,
-                disabledLabelColor = Color.Gray
-            )
+//            enabled = false,
+//            colors = OutlinedTextFieldDefaults.colors(
+//                disabledBorderColor = Color.Gray,
+//                disabledLabelColor = Color.Gray
+//            )
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -117,46 +117,19 @@ fun ProfileCompletionScreen(
         Spacer(modifier = Modifier.height(16.dp))
         
         // Birth Date Field
-        OutlinedTextField(
-            value = birthDate,
-            onValueChange = { birthDate = it },
-            label = { Text("Fecha de nacimiento") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                focusedLabelColor = MaterialTheme.colorScheme.primary
-            )
+        DatePicker(
+            date = birthDate,
+            onDateChange = { birthDate = it }
         )
         
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Gender Selection
-        Text(
-            text = "OCUPACIÓN",
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray,
-            modifier = Modifier.align(Alignment.Start)
+
+        ButtonGroup(
+            options = listOf("Masculino", "Femenino", "Otro"),
+            selectedOption = selectedGender,
+            onSelected = { selectedGender = it }
         )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            listOf("Masculino", "Femenino", "Otro").forEach { gender ->
-                FilterChip(
-                    onClick = { selectedGender = gender },
-                    label = { Text(gender) },
-                    selected = selectedGender == gender,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-            }
-        }
+
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -200,28 +173,29 @@ fun ProfileCompletionScreen(
             Checkbox(
                 checked = privacyAccepted,
                 onCheckedChange = { privacyAccepted = it },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colorScheme.primary
-                )
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
             )
-            
-            Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(
-                    text = "He leído y acepto la política de privacidad y protección",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-                TextButton(
-                    onClick = onPrivacyPolicyClick,
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text(
-                        text = "de datos",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+
+            Spacer(Modifier.width(8.dp))
+
+            val annotated = buildAnnotatedString {
+                append("He leído y acepto la ")
+                pushStringAnnotation(tag = "policy", annotation = "policy")
+                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.None)) {
+                    append("política de privacidad y protección")
                 }
+                pop()
             }
+
+            ClickableText(
+                text = annotated,
+                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface),
+                onClick = { offset ->
+                    annotated.getStringAnnotations("policy", offset, offset)
+                        .firstOrNull()?.let { onPrivacyPolicyClick() }
+                }
+            )
         }
         
         Spacer(modifier = Modifier.height(24.dp))
