@@ -1,6 +1,5 @@
 package com.example.harbit.ui.screens.auth
 
-import DatePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,28 +8,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.harbit.ui.components.ButtonGroup
+import com.example.harbit.ui.components.MaterialDatePicker
 
 // Using Material Design 3 theme colors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileCompletionScreen(
     onProfileComplete: () -> Unit,
@@ -39,7 +33,7 @@ fun ProfileCompletionScreen(
     var userName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("john.doe@gmail.com") }
     var phone by remember { mutableStateOf("+51987654321") }
-    var birthDate by remember { mutableStateOf("DD/MM/AAAA") }
+    var birthDate by remember { mutableStateOf("") }
     var selectedGender by remember { mutableStateOf("Masculino") }
     var height by remember { mutableStateOf("72.3") }
     var weight by remember { mutableStateOf("176") }
@@ -117,7 +111,7 @@ fun ProfileCompletionScreen(
         Spacer(modifier = Modifier.height(16.dp))
         
         // Birth Date Field
-        DatePicker(
+        MaterialDatePicker(
             date = birthDate,
             onDateChange = { birthDate = it }
         )
@@ -205,16 +199,15 @@ fun ProfileCompletionScreen(
             onClick = onProfileComplete,
             enabled = privacyAccepted && userName.isNotBlank(),
             modifier = Modifier
-                .fillMaxWidth()
                 .height(48.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             ),
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(16.dp)
         ) {
             Text(
                 text = "¡Listo!",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimary
             )
         }

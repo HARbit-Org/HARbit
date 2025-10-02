@@ -108,7 +108,7 @@ fun SmartwatchSetupScreen(
             Text(
                 text = "Para obtener lecturas más precisas de tu actividad física y signos vitales, coloca el reloj inteligente en tu brazo dominante.",
                 fontSize = 16.sp,
-                color = Color.Gray,
+                color = Color.Black,
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
@@ -130,6 +130,7 @@ fun SmartwatchSetupScreen(
                     text = "Continuar",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = Color.White
                 )
             }
