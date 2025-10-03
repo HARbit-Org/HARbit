@@ -26,48 +26,54 @@ import com.example.harbit.ui.theme.HARbitCyan
 fun WelcomeScreen(
     onGoogleSignInClick: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
-//        Spacer(modifier = Modifier.weight(1f))
-        
-        // HARbit Logo and Icon
-        Image(
-            painter = painterResource(id = com.example.harbit.R.drawable.welcome),
-            contentDescription = "Welcome",
-            modifier = Modifier
-                .fillMaxWidth(),
-            contentScale = ContentScale.FillWidth
-        )
-
-        Spacer(modifier = Modifier.height(128.dp))
-
-        // Google Sign In Button
-        Button(
-            onClick = onGoogleSignInClick,
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            shape = RoundedCornerShape(28.dp)
+                .widthIn(max = 400.dp), // Max width for responsive design
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            // HARbit Logo and Icon
+            Image(
+                painter = painterResource(id = com.example.harbit.R.drawable.welcome),
+                contentDescription = "Welcome",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 320.dp), // Max width for image
+                contentScale = ContentScale.FillWidth
+            )
+
+            Spacer(modifier = Modifier.height(64.dp))
+
+            // Google Sign In Button
+            Button(
+                onClick = onGoogleSignInClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(28.dp)
             ) {
-                // Google icon would go here if we had the asset
-                Text(
-                    text = "🔍 Accede con Google",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Google icon would go here if we had the asset
+                    Text(
+                        text = "🔍 Accede con Google",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     }
