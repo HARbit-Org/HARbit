@@ -115,39 +115,7 @@ fun MaterialDatePicker(
                 TextButton(onClick = { showDialog = false }) {
                     Text("Cancelar")
                 }
-            },
-//            colors = DatePickerDefaults.colors(
-//                // Container colors
-//                containerColor = MaterialTheme.colorScheme.surface,
-//
-//                // Title and headline
-//                titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-//                headlineContentColor = MaterialTheme.colorScheme.onSurface,
-//
-//                // Weekday labels (Mon, Tue, etc.)
-//                weekdayContentColor = MaterialTheme.colorScheme.onSurface,
-//
-//                // Month/Year selector
-//                subheadContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-//                yearContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-//                currentYearContentColor = MaterialTheme.colorScheme.primary,
-//                selectedYearContentColor = MaterialTheme.colorScheme.onPrimary,
-//                selectedYearContainerColor = MaterialTheme.colorScheme.primary,
-//
-//                // Day cells
-//                dayContentColor = MaterialTheme.colorScheme.onSurface,
-//                disabledDayContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-//                selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-//                selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-//
-//                // Today indicator
-//                todayContentColor = MaterialTheme.colorScheme.primary,
-//                todayDateBorderColor = MaterialTheme.colorScheme.primary,
-//
-//                // Navigation icons
-//                dayInSelectionRangeContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-//                dayInSelectionRangeContainerColor = MaterialTheme.colorScheme.secondaryContainer
-//            )
+            }
         ) {
             DatePicker(
                 state = datePickerState

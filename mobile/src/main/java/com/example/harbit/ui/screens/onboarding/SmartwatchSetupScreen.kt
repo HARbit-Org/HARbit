@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SmartwatchSetupScreen(
     onBackClick: () -> Unit,
@@ -26,25 +25,8 @@ fun SmartwatchSetupScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Top App Bar
-        TopAppBar(
-            title = { },
-            navigationIcon = {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Volver",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White
-            )
-        )
-        
         Column(
             modifier = Modifier
                 .fillMaxSize()

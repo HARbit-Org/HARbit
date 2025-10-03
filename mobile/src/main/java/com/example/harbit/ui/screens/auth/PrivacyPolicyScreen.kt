@@ -29,7 +29,7 @@ fun PrivacyPolicyScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         // Top App Bar
         TopAppBar(
@@ -103,39 +103,6 @@ fun PrivacyPolicyScreen(
                     title = "Contacto",
                     content = "Para ejercer sus derechos o realizar consultas sobre esta política, puede contactarnos al correo: contacto@harbit.com."
                 )
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Accept Button
-            Button(
-                onClick = onAcceptClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Entendido",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
-                    )
-                }
             }
         }
     }
