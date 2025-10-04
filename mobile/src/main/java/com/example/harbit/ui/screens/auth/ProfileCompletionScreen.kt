@@ -426,6 +426,7 @@ fun validateHeight(height: String, callback: (Boolean, String) -> Unit) {
         height.toFloatOrNull() == null -> callback(false, "Ingresa una altura válida")
         height.toFloat() <= 0 -> callback(false, "La altura debe ser mayor a 0")
         height.toFloat() < 50 -> callback(false, "Ingresa una altura realista")
+        height.toFloat() > 300 -> callback(false, "Ingresa una altura realista")
         else -> callback(true, "")
     }
 }

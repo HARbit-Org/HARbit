@@ -81,9 +81,6 @@ fun AppNavigation(
                     PrivacyPolicyScreen(
                         onBackClick = {
                             navController.popBackStack()
-                        },
-                        onAcceptClick = {
-                            navController.popBackStack()
                         }
                     )
                 }

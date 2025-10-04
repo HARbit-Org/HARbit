@@ -1,5 +1,6 @@
 package com.example.harbit.ui.screens.auth
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,15 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.harbit.ui.components.Header
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyPolicyScreen(
     onBackClick: () -> Unit,
-    onAcceptClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -35,11 +37,8 @@ fun PrivacyPolicyScreen(
         TopAppBar(
             title = {
                 Text(
-                    text = "Política de Privacidad\ny Protección de datos",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
+                    text = "",
                     color = MaterialTheme.colorScheme.primary,
-                    lineHeight = 20.sp
                 )
             },
             navigationIcon = {
@@ -52,15 +51,21 @@ fun PrivacyPolicyScreen(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         )
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(horizontal = 24.dp, vertical = 0.dp)
+                .verticalScroll(rememberScrollState())
         ) {
+            Header(
+                title = "Política de Privacidad\ny Protección de Datos",
+                subtitle = ""
+            )
+
             Text(
                 text = "Al aceptar esta política, usted autoriza el tratamiento de sus datos personales de acuerdo con las siguientes condiciones:",
                 fontSize = 14.sp,
