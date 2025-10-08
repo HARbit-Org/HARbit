@@ -1,6 +1,5 @@
-package com.example.harbit.domain.service
+package com.example.harbit.service
 
-import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,6 +7,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.example.harbit.R
 import com.example.harbit.domain.model.SensorReading
 import com.example.harbit.domain.model.enum.SensorType
 import com.example.harbit.domain.repository.SensorRepository
@@ -194,7 +194,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("HARbit Sync Active")
             .setContentText("Collecting sensor data from smartwatch")
-            .setSmallIcon(R.drawable.stat_notify_sync)
+            .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .build()
     }
@@ -206,7 +206,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
             val notification = NotificationCompat.Builder(this@SensorDataService, CHANNEL_ID)
                 .setContentTitle("HARbit Sync Active")
                 .setContentText("$unsentCount batches pending")
-                .setSmallIcon(R.drawable.stat_notify_sync)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setOngoing(true)
                 .build()
 
