@@ -9,7 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.example.harbit.App
-import com.example.harbit.data.local.SensorBatchDao
+import com.example.harbit.data.repository.SensorBatchDao
 import com.example.harbit.data.local.SensorBatchEntity
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
@@ -48,10 +48,6 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
         
         // Start as foreground service
         startForeground(NOTIF_ID, createNotification())
-        
-        // Initialize database (you'll need to inject this properly with Hilt/Koin)
-        // For now, this is a placeholder - you'll need to set this up
-        // sensorBatchDao = ... (inject via DI)
         
         // Register message listener to receive data from smartwatch
         messageClient.addListener(this)

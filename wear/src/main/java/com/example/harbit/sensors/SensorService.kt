@@ -33,11 +33,12 @@ class SensorService : LifecycleService(), SensorEventListener {
         // batching ~1s at 20 Hz (20 samples)
         private const val BATCH_BYTES_BUDGET = 50 * 1024
         private const val BATCH_SAMPLES = BATCH_BYTES_BUDGET / BYTES_PER_SAMPLE
+//        private const val BATCH_SAMPLES = 20
     }
 
     private lateinit var sensorManager: SensorManager
     private var accel: Sensor? = null
-    private var gyro: Sensor? = null
+//    private var gyro: Sensor? = null
 
     private val msgClient by lazy { Wearable.getMessageClient(this) }
     private val nodeClient by lazy { Wearable.getNodeClient(this) }
@@ -45,6 +46,7 @@ class SensorService : LifecycleService(), SensorEventListener {
 //    private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE * 2) // Twice the size to accommodate both sensors
 
     private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE)
+        .order(java.nio.ByteOrder.LITTLE_ENDIAN)
     private var batchCount = 0
 
     override fun onCreate() {

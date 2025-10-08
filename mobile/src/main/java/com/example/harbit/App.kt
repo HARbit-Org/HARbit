@@ -17,7 +17,7 @@ class App : Application() {
                     SensorDatabase::class.java,
                     "sensor_database"
                 )
-                .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(false)
                 .build().also { _database = it }
             }
         }
