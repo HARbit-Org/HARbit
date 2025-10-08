@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.harbit.data.local.SensorDatabase
 import com.example.harbit.data.local.dao.SensorBatchDao
+import com.example.harbit.data.local.dao.SensorReadingDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +15,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-    
+
     @Provides
     @Singleton
     fun provideSensorDatabase(
@@ -25,13 +26,20 @@ object DatabaseModule {
             SensorDatabase::class.java,
             "sensor_database"
         )
-        .fallbackToDestructiveMigration()
-        .build()
+            .fallbackToDestructiveMigration()
+            .build()
     }
-    
+
     @Provides
     @Singleton
     fun provideSensorBatchDao(database: SensorDatabase): SensorBatchDao {
         return database.sensorBatchDao()
+    }
+
+    // ✅ Add this method
+    @Provides
+    @Singleton
+    fun provideSensorReadingDao(database: SensorDatabase): SensorReadingDao {
+        return database.sensorReadingDao()
     }
 }

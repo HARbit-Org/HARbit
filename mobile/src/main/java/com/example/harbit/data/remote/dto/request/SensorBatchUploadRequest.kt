@@ -1,5 +1,6 @@
 package com.example.harbit.data.remote.dto.request
 
+import com.example.harbit.data.remote.dto.SensorBatchDto
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.compose.runtime.SideEffect
 import androidx.navigation.compose.rememberNavController
-import com.example.harbit.service.SensorDataService
+import com.example.harbit.domain.service.SensorDataService
 import com.example.harbit.ui.navigation.AppNavigation
 import com.example.harbit.ui.theme.HARbitTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
