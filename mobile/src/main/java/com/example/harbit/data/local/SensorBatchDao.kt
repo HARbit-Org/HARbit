@@ -1,9 +1,8 @@
-package com.example.harbit.data.repository
+package com.example.harbit.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.harbit.data.local.SensorBatchEntity
 
 @Dao
 interface SensorBatchDao {

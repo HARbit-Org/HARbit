@@ -8,16 +8,17 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.example.harbit.App
-import com.example.harbit.data.repository.SensorBatchDao
 import com.example.harbit.data.local.SensorBatchEntity
+import com.example.harbit.domain.repository.SensorRepository
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.nio.ByteBuffer
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedListener {
 
     companion object {
@@ -34,17 +35,16 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
         private const val BYTES_PER_SAMPLE = 21  // 8 (timestamp) + 1 (sensor type) + 12 (3 floats)
     }
 
+    @Inject
+    lateinit var sensorRepository: SensorRepository
+
     private val messageClient by lazy { Wearable.getMessageClient(this) }
-    private lateinit var sensorBatchDao: SensorBatchDao
     
     private var lastUploadTime = 0L
     private var receivedBatchCount = 0
 
     override fun onCreate() {
         super.onCreate()
-        
-        // Initialize database (safe even if App.onCreate hasn't run yet)
-        sensorBatchDao = App.getDatabase(applicationContext).sensorBatchDao()
         
         // Start as foreground service
         startForeground(NOTIF_ID, createNotification())
@@ -73,7 +73,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
                     
                     Log.d(TAG, "Received batch from watch: ${batchData.size} bytes, ~$sampleCount samples")
                     
-                    // Store in local database
+                    // Store in local database via repository
                     val batch = SensorBatchEntity(
                         timestamp = System.currentTimeMillis(),
                         deviceId = messageEvent.sourceNodeId,
@@ -82,7 +82,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
                         uploaded = false
                     )
                     
-                    sensorBatchDao.insertBatch(batch)
+                    sensorRepository.insertBatch(batch)
                     receivedBatchCount++
                     
                     // Update notification
@@ -108,7 +108,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
     }
 
     private suspend fun checkAndUpload() {
-        val unsentCount = sensorBatchDao.getUnsentCount()
+        val unsentCount = sensorRepository.getUnsentCount()
         val timeSinceLastUpload = System.currentTimeMillis() - lastUploadTime
         val minutesSinceUpload = timeSinceLastUpload / (60 * 1000)
         
@@ -125,7 +125,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
 
     private suspend fun uploadBatchesToBackend() {
         try {
-            val batches = sensorBatchDao.getUnsentBatches()
+            val batches = sensorRepository.getUnsentBatches()
             
             if (batches.isEmpty()) {
                 Log.d(TAG, "No batches to upload")
@@ -134,13 +134,11 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
             
             Log.d(TAG, "Uploading ${batches.size} batches to backend...")
             
-            // TODO: Implement actual HTTP upload to your backend
-            // For now, this is a placeholder
-            val success = uploadToBackendAPI(batches)
+            val success = sensorRepository.uploadBatchesToBackend(batches)
             
             if (success) {
                 // Mark batches as uploaded
-                sensorBatchDao.markAsUploaded(batches.map { it.id })
+                sensorRepository.markAsUploaded(batches.map { it.id })
                 lastUploadTime = System.currentTimeMillis()
                 
                 Log.d(TAG, "Successfully uploaded ${batches.size} batches")
@@ -148,7 +146,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
                 
                 // Clean up old uploaded data (keep last 7 days)
                 val sevenDaysAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
-                sensorBatchDao.deleteOldUploaded(sevenDaysAgo)
+                sensorRepository.deleteOldUploaded(sevenDaysAgo)
             } else {
                 Log.e(TAG, "Failed to upload batches - will retry later")
             }
@@ -156,30 +154,6 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
         } catch (e: Exception) {
             Log.e(TAG, "Error uploading batches", e)
         }
-    }
-
-    private suspend fun uploadToBackendAPI(batches: List<SensorBatchEntity>): Boolean {
-        // TODO: Implement actual HTTP POST to your backend
-        // This is where you'd use Retrofit/Ktor to send data
-        
-        // Placeholder implementation:
-        Log.d(TAG, "TODO: Upload ${batches.size} batches to backend API")
-        
-        // Example payload structure:
-        // POST /api/v1/sensor-data
-        // {
-        //   "userId": "user123",
-        //   "deviceId": "watch456",
-        //   "batches": [
-        //     {
-        //       "timestamp": 1234567890,
-        //       "sampleCount": 2438,
-        //       "data": "base64_encoded_bytes..."
-        //     }
-        //   ]
-        // }
-        
-        return false // Replace with actual upload result
     }
 
     private fun createNotification(): Notification {
@@ -206,8 +180,8 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
 
     private fun updateNotification() {
         lifecycleScope.launch {
-            val unsentCount = sensorBatchDao.getUnsentCount()
-            val unsentSize = sensorBatchDao.getUnsentDataSize() ?: 0L
+            val unsentCount = sensorRepository.getUnsentCount()
+            val unsentSize = sensorRepository.getUnsentDataSize() ?: 0L
             val sizeMB = unsentSize / (1024.0 * 1024.0)
             
             val notification = NotificationCompat.Builder(this@SensorDataService, CHANNEL_ID)

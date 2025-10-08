@@ -18,7 +18,9 @@ import com.example.harbit.service.SensorDataService
 import com.example.harbit.ui.navigation.AppNavigation
 import com.example.harbit.ui.theme.HARbitTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     
     // Permission launcher for POST_NOTIFICATIONS
