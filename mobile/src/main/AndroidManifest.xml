@@ -4,6 +4,8 @@
 
     <!-- Required for communication with the watch -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     
     <!-- Required for internet connection -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -41,6 +43,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Foreground service for sensor data sync -->
+        <service
+            android:name=".service.SensorDataService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         
         <!-- For Wearable connection -->
         <meta-data

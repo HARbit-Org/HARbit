@@ -25,13 +25,14 @@ class SensorService : LifecycleService(), SensorEventListener {
         private const val SAMPLE_RATE_HZ = 20
         private const val SENSOR_PERIOD_US = (1000000 / SAMPLE_RATE_HZ) // 50,000 us = 20 Hz
         private const val MAX_LATENCY_US = 1_000_000  // 1 s max latency
-        
-        // batching ~1s at 20 Hz (20 samples)
-        private const val BATCH_SAMPLES = 20
-        
+
         // Format: [long timestamp][byte sensorType][float x][float y][float z]
         // sensorType: 1 = accelerometer, 2 = gyroscope
         private const val BYTES_PER_SAMPLE = 8 + 1 + 3 * 4 // timestamp + sensorType + 3 floats
+        
+        // batching ~1s at 20 Hz (20 samples)
+        private const val BATCH_BYTES_BUDGET = 50 * 1024
+        private const val BATCH_SAMPLES = BATCH_BYTES_BUDGET / BYTES_PER_SAMPLE
     }
 
     private lateinit var sensorManager: SensorManager
@@ -41,7 +42,9 @@ class SensorService : LifecycleService(), SensorEventListener {
     private val msgClient by lazy { Wearable.getMessageClient(this) }
     private val nodeClient by lazy { Wearable.getNodeClient(this) }
 
-    private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE * 2) // Twice the size to accommodate both sensors
+//    private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE * 2) // Twice the size to accommodate both sensors
+
+    private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE)
     private var batchCount = 0
 
     override fun onCreate() {
@@ -51,36 +54,36 @@ class SensorService : LifecycleService(), SensorEventListener {
         
         // Get both accelerometer and gyroscope sensors
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+//        gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         
         // Check if sensors exist
         if (accel == null) {
             android.util.Log.e("SensorService", "No accelerometer available!")
         }
         
-        if (gyro == null) {
-            android.util.Log.e("SensorService", "No gyroscope available!")
-        }
+//        if (gyro == null) {
+//            android.util.Log.e("SensorService", "No gyroscope available!")
+//        }
 
         // Add message listener for connection validation from mobile
-        Wearable.getMessageClient(this).addListener { messageEvent ->
-            if (messageEvent.path == "/mobile-connected") {
-                android.util.Log.d("SensorService", "Mobile connection confirmed from ${messageEvent.sourceNodeId}")
-                // Send a small test payload to confirm bidirectional communication
-                val testPayload = ByteBuffer.allocate(BYTES_PER_SAMPLE).apply {
-                    putLong(SystemClock.elapsedRealtimeNanos())
-                    put(1) // 1 = accelerometer
-                    putFloat(0f)
-                    putFloat(0f)
-                    putFloat(0f)
-                }.array()
-                
-                msgClient.sendMessage(messageEvent.sourceNodeId, MSG_PATH, testPayload)
-                    .addOnSuccessListener {
-                        android.util.Log.d("SensorService", "Sent test data to confirm connection")
-                    }
-            }
-        }
+//        Wearable.getMessageClient(this).addListener { messageEvent ->
+//            if (messageEvent.path == "/mobile-connected") {
+//                android.util.Log.d("SensorService", "Mobile connection confirmed from ${messageEvent.sourceNodeId}")
+//                // Send a small test payload to confirm bidirectional communication
+//                val testPayload = ByteBuffer.allocate(BYTES_PER_SAMPLE).apply {
+//                    putLong(SystemClock.elapsedRealtimeNanos())
+//                    put(1) // 1 = accelerometer
+//                    putFloat(0f)
+//                    putFloat(0f)
+//                    putFloat(0f)
+//                }.array()
+//
+//                msgClient.sendMessage(messageEvent.sourceNodeId, MSG_PATH, testPayload)
+//                    .addOnSuccessListener {
+//                        android.util.Log.d("SensorService", "Sent test data to confirm connection")
+//                    }
+//            }
+//        }
 
         // Verify if we have connected devices before starting the sensors
         nodeClient.connectedNodes.addOnSuccessListener { nodes ->
@@ -100,12 +103,12 @@ class SensorService : LifecycleService(), SensorEventListener {
                 sensorsRegistered = true
             }
             
-            gyro?.let {
-                sensorManager.registerListener(
-                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
-                )
-                sensorsRegistered = true
-            }
+//            gyro?.let {
+//                sensorManager.registerListener(
+//                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
+//                )
+//                sensorsRegistered = true
+//            }
             
             // Stop service if no sensors could be registered
             if (!sensorsRegistered) {
@@ -126,12 +129,12 @@ class SensorService : LifecycleService(), SensorEventListener {
                 sensorsRegistered = true
             }
             
-            gyro?.let {
-                sensorManager.registerListener(
-                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
-                )
-                sensorsRegistered = true
-            }
+//            gyro?.let {
+//                sensorManager.registerListener(
+//                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
+//                )
+//                sensorsRegistered = true
+//            }
             
             // Stop service if no sensors could be registered
             if (!sensorsRegistered) {
@@ -145,7 +148,7 @@ class SensorService : LifecycleService(), SensorEventListener {
         super.onDestroy()
         sensorManager.unregisterListener(this)
         // No need to explicitly remove message listeners in a service that's being destroyed
-        android.util.Log.d("GyroService", "Service is being destroyed")
+        android.util.Log.d("SensorService", "Service is being destroyed")
     }
 
     private fun makeNotification(): Notification {
@@ -157,7 +160,7 @@ class SensorService : LifecycleService(), SensorEventListener {
         }
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Streaming sensors")
-            .setContentText("Sending accelerometer & gyroscope data to phone...")
+            .setContentText("Sending accelerometer data to phone...")
             .setOngoing(true)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
             .build()

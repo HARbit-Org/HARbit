@@ -67,6 +67,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-service:2.7.0")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
@@ -91,6 +92,11 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
 
     implementation ("androidx.compose.material:material-icons-extended")
+
+    // REST
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
