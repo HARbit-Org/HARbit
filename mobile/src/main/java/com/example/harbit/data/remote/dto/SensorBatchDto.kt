@@ -1,24 +1,22 @@
 package com.example.harbit.data.remote.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SensorBatchUploadRequest(
-    val userId: String,
-    val batches: List<BatchData>
-)
+data class SensorBatchDto(
+    @SerialName("id")
+    val id: String,
 
-@Serializable
-data class BatchData(
-    val timestamp: Long,
+    @SerialName("device_id")
     val deviceId: String,
-    val sampleCount: Int,
-    val data: String  // Base64 encoded binary data
-)
 
-@Serializable
-data class SensorBatchUploadResponse(
-    val success: Boolean,
-    val message: String? = null,
-    val uploadedCount: Int
+    @SerialName("timestamp")
+    val timestamp: Long,
+
+    @SerialName("sample_count")
+    val sampleCount: Int,
+
+    @SerialName("readings")
+    val readings: List<SensorReadingDto>
 )

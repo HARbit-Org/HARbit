@@ -1,92 +1,136 @@
 package com.example.harbit.data.repository
 
 import android.util.Log
-import com.example.harbit.data.local.SensorBatchDao
-import com.example.harbit.data.local.SensorBatchEntity
-import com.example.harbit.data.remote.BackendApiService
-import com.example.harbit.data.remote.dto.BatchData
-import com.example.harbit.data.remote.dto.SensorBatchUploadRequest
+import com.example.harbit.data.local.dao.SensorBatchDao
+import com.example.harbit.data.local.dao.SensorReadingDao
+import com.example.harbit.data.local.entity.SensorBatchEntity
+import com.example.harbit.data.local.entity.SensorReadingEntity
+import com.example.harbit.data.remote.dto.SensorBatchDto
+import com.example.harbit.data.remote.dto.SensorReadingDto
+import com.example.harbit.data.remote.dto.request.SensorBatchUploadRequest
+import com.example.harbit.data.remote.service.BackendApiService
+import com.example.harbit.domain.model.SensorBatch
+import com.example.harbit.domain.model.SensorReading
+import com.example.harbit.domain.model.enum.SensorType
 import com.example.harbit.domain.repository.SensorRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.util.UUID
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class SensorRepositoryImpl @Inject constructor(
-    private val sensorBatchDao: SensorBatchDao,
+    private val batchDao: SensorBatchDao,
+    private val readingDao: SensorReadingDao,
     private val apiService: BackendApiService
 ) : SensorRepository {
-    
-    companion object {
-        private const val TAG = "SensorRepository"
-    }
-    
-    override suspend fun insertBatch(batch: SensorBatchEntity): Long {
-        return sensorBatchDao.insertBatch(batch)
-    }
-    
-    override suspend fun getUnsentBatches(): List<SensorBatchEntity> {
-        return sensorBatchDao.getUnsentBatches()
-    }
-    
-    override suspend fun markAsUploaded(batchIds: List<Long>) {
-        sensorBatchDao.markAsUploaded(batchIds)
-    }
-    
-    override suspend fun getUnsentCount(): Int {
-        return sensorBatchDao.getUnsentCount()
-    }
-    
-    override suspend fun getUnsentDataSize(): Long? {
-        return sensorBatchDao.getUnsentDataSize()
-    }
-    
-    override suspend fun deleteOldUploaded(olderThan: Long) {
-        sensorBatchDao.deleteOldUploaded(olderThan)
-    }
-    
-    override suspend fun uploadBatchesToBackend(batches: List<SensorBatchEntity>): Boolean {
-        return try {
-            // TODO: Get actual user ID from auth system
-            val userId = "temp_user_id"
-            
-            val request = SensorBatchUploadRequest(
-                userId = userId,
-                batches = batches.map { batch ->
-                    BatchData(
-                        timestamp = batch.timestamp,
-                        deviceId = batch.deviceId,
-                        sampleCount = batch.sampleCount,
-                        data = android.util.Base64.encodeToString(
-                            batch.batchData,
-                            android.util.Base64.NO_WRAP
-                        )
-                    )
-                }
+
+    override suspend fun insertBatch(deviceId: String, readings: List<SensorReading>) {
+        val batchId = UUID.randomUUID().toString()
+
+        // Insert batch metadata
+        val batch = SensorBatchEntity(
+            id = batchId,
+            deviceId = deviceId,
+            timestamp = System.currentTimeMillis(),
+            sampleCount = readings.size,
+            uploaded = false
+        )
+        batchDao.insertBatch(batch)
+
+        // Insert individual readings
+        val readingEntities = readings.map { reading ->
+            SensorReadingEntity(
+                batchId = batchId,
+                timestamp = reading.timestamp,
+                sensorType = reading.sensorType.value,
+                x = reading.x,
+                y = reading.y,
+                z = reading.z,
+                uploaded = false
             )
-            
-            val response = apiService.uploadSensorData(request)
-            
-            if (response.isSuccessful) {
-                Log.d(TAG, "Successfully uploaded ${batches.size} batches")
-                true
-            } else {
-                Log.e(TAG, "Upload failed: ${response.code()} ${response.message()}")
-                false
+        }
+        readingDao.insertReadings(readingEntities)
+
+        Log.d("SensorRepo", "Inserted batch $batchId with ${readings.size} readings")
+    }
+
+    override suspend fun getUnsentBatches(): List<SensorBatch> {
+        val batches = batchDao.getUnsentBatches()
+
+        return batches.map { batch ->
+            val readingEntities = readingDao.getReadingsForBatch(batch.id)
+            val readings = readingEntities.map { entity ->
+                SensorReading(
+                    timestamp = entity.timestamp,
+                    sensorType = SensorType.fromInt(entity.sensorType) ?: SensorType.ACCELEROMETER,
+                    x = entity.x,
+                    y = entity.y,
+                    z = entity.z
+                )
             }
-            
+
+            SensorBatch(
+                id = batch.id,
+                deviceId = batch.deviceId,
+                batchTimestamp = batch.timestamp,
+                readings = readings
+            )
+        }
+    }
+
+    override suspend fun uploadBatchesToBackend(batches: List<SensorBatch>): Boolean {
+        return try {
+            val batchDtos = batches.map { batch ->
+                SensorBatchDto(
+                    id = batch.id,
+                    timestamp = batch.batchTimestamp,
+                    deviceId = batch.deviceId,
+                    sampleCount = batch.readings.size,
+                    readings = batch.readings.map { reading ->
+                        SensorReadingDto(
+                            timestamp = reading.timestamp,
+                            sensorType = reading.sensorType.value,
+                            x = reading.x,
+                            y = reading.y,
+                            z = reading.z
+                        )
+                    }
+                )
+            }
+
+            val request = SensorBatchUploadRequest(
+                userId = "TODO_GET_USER_ID",  // Get from auth
+                batches = batchDtos
+            )
+
+            val response = apiService.uploadSensorData(request)
+            Log.d("SensorRepo", "Upload successful: ${response.message()}")
+            true
         } catch (e: Exception) {
-            Log.e(TAG, "Upload error", e)
+            Log.e("SensorRepo", "Upload failed", e)
             false
         }
     }
-    
+
+    override suspend fun markAsUploaded(batchIds: List<String>) {
+        batchDao.markAsUploaded(batchIds)
+        readingDao.markAsUploaded(batchIds)
+    }
+
+    override suspend fun getUnsentCount(): Int {
+        return batchDao.getUnsentCount()
+    }
+
+    override suspend fun deleteOldUploaded(beforeTimestamp: Long) {
+        batchDao.deleteOldUploaded(beforeTimestamp)
+        readingDao.deleteOldReadings(beforeTimestamp)
+    }
+
     override fun getTodaySteps(): Flow<Int> = flow {
         // TODO: Implement when you have steps data processing
         emit(0)
     }
-    
+
     override fun getCurrentHeartRate(): Flow<Int> = flow {
         // TODO: Implement when you have heart rate data processing
         emit(0)

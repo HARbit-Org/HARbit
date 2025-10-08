@@ -3,7 +3,7 @@ package com.example.harbit.di
 import android.content.Context
 import androidx.room.Room
 import com.example.harbit.data.local.SensorDatabase
-import com.example.harbit.data.local.SensorBatchDao
+import com.example.harbit.data.local.dao.SensorBatchDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

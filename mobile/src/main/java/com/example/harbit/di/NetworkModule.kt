@@ -1,6 +1,6 @@
 package com.example.harbit.di
 
-import com.example.harbit.data.remote.BackendApiService
+import com.example.harbit.data.remote.service.BackendApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
