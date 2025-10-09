@@ -46,7 +46,7 @@ object NetworkModule {
         json: Json
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://0.0.0.0:8000") // TODO: Replace with your actual backend URL
+            .baseUrl("http://192.168.18.113:8000") // TODO: Replace with your actual backend URL
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()

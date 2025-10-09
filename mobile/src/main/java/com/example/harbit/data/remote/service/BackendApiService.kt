@@ -8,7 +8,8 @@ import retrofit2.http.POST
 
 interface BackendApiService {
 
-    @POST("/api/v1/sensor-data")
+//    @POST("/api/v1/sensor-data")
+    @POST("/sensor-data")
     suspend fun uploadSensorData(
         @Body request: SensorBatchUploadRequest
     ): Response<SensorBatchUploadResponse>
