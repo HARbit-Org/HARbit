@@ -104,7 +104,8 @@ class SensorRepositoryImpl @Inject constructor(
             )
 
             val response = apiService.uploadSensorData(request)
-            Log.d("SensorRepo", "Upload successful: ${response.message()}")
+            val body = response.body()
+            Log.d("SensorRepo", "Upload successful: ${body?.status}")
             true
         } catch (e: Exception) {
             Log.e("SensorRepo", "Upload failed", e)

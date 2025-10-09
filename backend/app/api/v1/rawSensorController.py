@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from model.dto.request import sensorRequestDto
+from model.dto.response import sensorResponseDto
 from service.rawSensorService import RawSensorService
 
 router = APIRouter(prefix="/sensor-data", tags=["sensor-data"])
 
-@router.post("", response_model=sensorRequestDto.sensorRequestDto, status_code=201)
+@router.post("", response_model=sensorResponseDto.sensorResponseDto, status_code=201)
 def receive_raw_sensor_data(body: sensorRequestDto.sensorRequestDto, svc: RawSensorService = Depends(RawSensorService)):
     try:
         svc.process_raw_data(body)
-        return body
+        return sensorResponseDto.sensorResponseDto(status="success")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
