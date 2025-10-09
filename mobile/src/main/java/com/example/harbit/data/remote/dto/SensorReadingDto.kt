@@ -8,7 +8,7 @@ data class SensorReadingDto(
     @SerialName("timestamp")
     val timestamp: Long,
 
-    @SerialName("sensor_type")
+    @SerialName("sensorType")
     val sensorType: Int,  // 1 = accel, 2 = gyro
 
     @SerialName("x")

@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SensorBatchUploadRequest(
-    @SerialName("user_id")
+    @SerialName("userId")
     val userId: String,
 
     @SerialName("batches")

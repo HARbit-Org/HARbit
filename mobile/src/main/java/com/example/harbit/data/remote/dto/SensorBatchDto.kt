@@ -8,13 +8,13 @@ data class SensorBatchDto(
     @SerialName("id")
     val id: String,
 
-    @SerialName("device_id")
+    @SerialName("deviceId")
     val deviceId: String,
 
     @SerialName("timestamp")
     val timestamp: Long,
 
-    @SerialName("sample_count")
+    @SerialName("sampleCount")
     val sampleCount: Int,
 
     @SerialName("readings")
