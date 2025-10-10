@@ -3,6 +3,10 @@ package com.example.harbit.service
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+//import android.content.ContentValues
+//import android.content.Context
+//import android.os.Environment
+//import android.provider.MediaStore
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -17,9 +21,16 @@ import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+//import kotlinx.serialization.encodeToString
+//import kotlinx.serialization.json.Json
+//import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+//import java.text.SimpleDateFormat
+//import java.util.Date
+//import java.util.Locale
 import javax.inject.Inject
+import kotlin.collections.mutableListOf
 
 @AndroidEntryPoint
 class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedListener {
@@ -90,6 +101,42 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
         }
     }
 
+//    private fun downloadJson(readings: List<SensorReading>, context: Context) {
+//        try {
+//            if (readings.isEmpty()) {
+//                Log.w(TAG, "No readings to export")
+//                return
+//            }
+//
+//            val json = Json { prettyPrint = true }
+//            val jsonString = json.encodeToString(readings)
+//
+//            val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.getDefault())
+//            val filename = "sensor_data_${dateFormat.format(Date())}.json"
+//
+//            val resolver = context.contentResolver
+//            val contentValues = ContentValues().apply {
+//                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+//                put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+//                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+//            }
+//
+//            val uri = resolver.insert(MediaStore.Files.getContentUri("external"), contentValues)
+//            uri?.let {
+//                resolver.openOutputStream(it)?.use { outputStream ->
+//                    outputStream.write(jsonString.toByteArray())
+//                }
+//                Log.d(TAG, "JSON file saved to Downloads: $filename (${readings.size} samples)")
+//            } ?: run {
+//                Log.e(TAG, "Failed to create file in Downloads")
+//            }
+//        } catch (e: IOException) {
+//            Log.e(TAG, "Error saving JSON file", e)
+//        } catch (e: Exception) {
+//            Log.e(TAG, "Unexpected error during JSON export", e)
+//        }
+//    }
+
     private fun parseSensorData(payload: ByteArray): List<SensorReading> {
         val readings = mutableListOf<SensorReading>()
         val buf = ByteBuffer.wrap(payload).order(ByteOrder.LITTLE_ENDIAN)
@@ -115,6 +162,9 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
                 )
             }
         }
+
+        // Service is already a Context, use 'this@SensorDataService'
+//        downloadJson(readings, this@SensorDataService)
 
         return readings
     }
