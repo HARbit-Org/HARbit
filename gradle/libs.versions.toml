@@ -32,6 +32,8 @@ horologistComposeTools = "0.6.17"
 horologistTiles = "0.6.17"
 watchfaceComplicationsDataSourceKtx = "1.2.1"
 ksp = "2.1.10-1.0.31"
+material3 = "1.4.0"
+uiTextGoogleFonts = "1.9.3"
 
 [libraries]
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomRuntime" }
@@ -73,6 +75,8 @@ androidx-watchface-complications-data-source-ktx = { group = "androidx.wear.watc
 play-services-wearable-v1820 = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearableVersion" }
 play-services-wearable-v1900 = { module = "com.google.android.gms:play-services-wearable", version.ref = "googlePlayServicesWearable" }
 ui = { module = "androidx.compose.ui:ui" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

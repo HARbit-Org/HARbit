@@ -59,6 +59,8 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.wear)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.ui.text.google.fonts)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
