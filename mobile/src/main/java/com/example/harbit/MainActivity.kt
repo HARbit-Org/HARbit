@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 AppNavigation(
                     navController = navController,
-                    startDestination = "welcome"
+                    startDestination = "activity"
                 )
             }
         }
