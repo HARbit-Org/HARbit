@@ -10,6 +10,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.example.harbit.ui.theme.eatColor
+import com.example.harbit.ui.theme.exerciseColor
+import com.example.harbit.ui.theme.otherColor
+import com.example.harbit.ui.theme.sedentarismColor
+import com.example.harbit.ui.theme.standColor
+import com.example.harbit.ui.theme.walkColor
 
 @Composable
 fun ActivityPieChart() {
@@ -26,11 +32,12 @@ fun ActivityPieChart() {
 
         // Activity data (percentages)
         val activities = listOf(
-            Triple(Color(0xFFE57373), 31f, "Sedentario"), // Light red for sedentary
-            Triple(Color(0xFF81C784), 16f, "Caminar"), // Light green for walking
-            Triple(Color(0xFF64B5F6), 16f, "De pie"), // Light blue for standing
-            Triple(Color(0xFFFFB74D), 21f, "Ejercicio"), // Orange for exercise
-            Triple(Color(0xFFBA68C8), 16f, "Otro") // Purple for other
+            Triple(sedentarismColor, 30f, "Sedentario"),
+            Triple(walkColor, 20f, "Caminar"),
+            Triple(standColor, 10f, "De pie"),
+            Triple(eatColor, 10f, "Comer"),
+            Triple(otherColor, 15f, "Otro"),
+            Triple(exerciseColor, 15f, "Ejercicio"),
         )
 
         var startAngle = -90f

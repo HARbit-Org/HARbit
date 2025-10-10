@@ -18,15 +18,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.harbit.ui.theme.eatColor
+import com.example.harbit.ui.theme.exerciseColor
+import com.example.harbit.ui.theme.otherColor
+import com.example.harbit.ui.theme.sedentarismColor
+import com.example.harbit.ui.theme.standColor
+import com.example.harbit.ui.theme.walkColor
 
 @Composable
 fun ActivityLegend() {
     val activities = listOf(
-        Triple(Color(0xFFE57373), "Sedentario", "31%"), // Light red for sedentary
-        Triple(Color(0xFF81C784), "Caminar", "16%"), // Light green for walking
-        Triple(Color(0xFF64B5F6), "De pie", "16%"), // Light blue for standing
-        Triple(Color(0xFFFFB74D), "Ejercicio", "21%"), // Orange for exercise
-        Triple(Color(0xFFBA68C8), "Otro", "16%") // Purple for other
+        Triple(sedentarismColor, "Sedentario", "30%"),
+        Triple(walkColor, "Caminar", "20%"),
+        Triple(standColor, "De pie", "10%"),
+        Triple(eatColor, "Comer", "10%"),
+        Triple(otherColor, "Otro", "15%"),
+        Triple(exerciseColor, "Ejercicio", "15%"),
     )
 
     Column(

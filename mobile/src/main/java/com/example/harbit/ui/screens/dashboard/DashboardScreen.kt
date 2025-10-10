@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Favorite
@@ -30,6 +31,9 @@ import androidx.compose.ui.unit.sp
 import com.example.harbit.ui.components.Header
 import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material.icons.outlined.WatchOff
+import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.components.AlertCard
 
@@ -99,18 +103,25 @@ fun DashboardScreen(
         // Health Metrics Row
         Row(
             modifier = Modifier
-                .fillMaxSize(0.5f),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize(),
+            horizontalArrangement = Arrangement.Center
         ) {
-            StepsCard(
-                modifier = Modifier.weight(1f),
-                onClick = onStepsClick
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxSize(0.5f),
+                horizontalArrangement = Arrangement
+                    .spacedBy(12.dp),
+            ) {
+                StepsCard(
+                    modifier = Modifier.weight(1f),
+                    onClick = onStepsClick
+                )
 
 //            HeartRateCard(
 //                modifier = Modifier.weight(1f),
 //                onClick = onHeartRateClick
 //            )
+            }
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -118,6 +129,8 @@ fun DashboardScreen(
         AlertCard(
             message = "Construye tu bienestar paso a paso"
         )
+
+        Spacer(modifier = Modifier.height(18.dp))
     }
 }
 
@@ -130,60 +143,55 @@ private fun StepsCard(
     Card(
         modifier = modifier
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(5.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = Icons.Default.DirectionsWalk,
+                    imageVector = Icons.AutoMirrored.Filled.DirectionsWalk,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
             Text(
                 text = "5010",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.primary
             )
-            Text(
-                text = "pasos",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(0.dp),
+                    text = "pasos",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             
             Text(
                 text = "Hoy superaste tu meta 💛",
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            Text(
-                text = "Continúa tu bienestar paso a paso",
-                fontSize = 8.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
                 textAlign = TextAlign.Center
             )
         }
