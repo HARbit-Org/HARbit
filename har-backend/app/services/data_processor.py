@@ -61,7 +61,7 @@ def process_data(data: Dict[str, Any], target_timestamp: int) -> Dict[str, Any]:
         
         
         # Crear DataFrames de Polars
-        accel_temp = pl.DataFrame(data['readings'])
+        accel_temp = pl.DataFrame(data)
         # gyro_temp = pl.DataFrame(data['gyro'])
 
         # Agregar columnas requeridas
@@ -118,12 +118,15 @@ def process_data(data: Dict[str, Any], target_timestamp: int) -> Dict[str, Any]:
         current_time = datetime.now().isoformat()
 
         for i in range(len(X_all)):
+            # Convert datetime objects back to epoch milliseconds
+            window_start_ms = int(metadata_all.loc[i, 'window_start'].timestamp() * 1000)
+            window_end_ms = int(metadata_all.loc[i, 'window_end'].timestamp() * 1000)
+            
             processed_data.append({
-                'window_start': metadata_all.loc[i, 'window_start'].isoformat(),
-                'window_end': metadata_all.loc[i, 'window_end'].isoformat(),
-                'predicted_activity': str(y_pred_classes[i]),  # Asegurar que sea string
+                'ts_start': window_start_ms,
+                'ts_end': window_end_ms,
+                'activity_label': str(y_pred_classes[i]),  # Asegurar que sea string
                 'model_version': 'CNNTEMP20ACCEL93',
-                'created_at': current_time
             })
 
         return processed_data

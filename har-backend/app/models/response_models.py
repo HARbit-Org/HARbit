@@ -17,11 +17,10 @@ class ProcessedDataSchema(Schema):
     metadata = fields.Nested(MetadataSchema)
 
 class PredictionResultSchema(Schema):
-    window_start = fields.Str(required=True)
-    window_end = fields.Str(required=True)
-    predicted_activity = fields.Str(required=True)
+    ts_start = fields.Int(required=True)
+    ts_end = fields.Int(required=True)
+    activity_label = fields.Str(required=True)
     model_version = fields.Str(required=True)
-    created_at = fields.Str(required=True)
 
 class DataResponseSchema(Schema):
     data = fields.List(fields.Nested(PredictionResultSchema))
