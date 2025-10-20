@@ -2,17 +2,19 @@ from typing import Generator
 from fastapi import Depends
 from typing import Annotated
 from sqlalchemy.orm import Session
-# from db.session import SessionLocal
+from db.session import SessionLocal
 from service.external.harModelService import HarModelService
 from pathlib import Path
 from service.rawSensorService import RawSensorService
 # from app.repositories.user_repo import UserRepository
 # from app.services.user_service import UserService
 
-# def get_db() -> Generator[Session, None, None]:
-#     db = SessionLocal()
-#     try: yield db
-#     finally: db.close()
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try: 
+        yield db
+    finally: 
+        db.close()
 
 def get_data_dir() -> Path:
     # Could read from env/config in real life

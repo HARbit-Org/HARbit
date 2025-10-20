@@ -99,7 +99,7 @@ class SensorRepositoryImpl @Inject constructor(
             }
 
             val request = SensorBatchUploadRequest(
-                userId = "TODO_GET_USER_ID",  // Get from auth
+                userId = "04a90055-ba8e-4934-af5a-c67da8316830",  // Get from auth
                 batches = batchDtos
             )
 
