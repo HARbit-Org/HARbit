@@ -43,7 +43,7 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
 
         // Upload configuration
         private const val UPLOAD_INTERVAL_MINUTES = 15  // Upload every 15 minutes
-        private const val MIN_BATCHES_TO_UPLOAD = 2     // Or when we have 5+ batches
+        private const val MIN_BATCHES_TO_UPLOAD = 5     // Or when we have 5+ batches
     }
 
     @Inject
