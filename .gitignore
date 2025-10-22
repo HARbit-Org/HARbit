@@ -14,3 +14,5 @@
 .cxx
 local.properties
 /backend/harbit-backend-env
+backend/.env.example
+backend/migrations

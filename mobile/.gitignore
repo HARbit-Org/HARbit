@@ -1,1 +1,5 @@
 /build
+/backend/migrations
+/backend/.env.example
+/backend/harbit-backend-env
+/har-backend/har-backend-venv

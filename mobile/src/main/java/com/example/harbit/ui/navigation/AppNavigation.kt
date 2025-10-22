@@ -57,8 +57,8 @@ fun AppNavigation(
                 // Authentication Flow
                 composable("welcome") {
                     WelcomeScreen(
-                        onGoogleSignInClick = {
-                            // Handle Google Sign In
+                        onLoginSuccess = {
+                            // Navigate after successful authentication
                             navController.navigate("profile_completion")
                         }
                     )

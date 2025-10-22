@@ -6,8 +6,9 @@ from db.session import SessionLocal
 from service.external.harModelService import HarModelService
 from pathlib import Path
 from service.rawSensorService import RawSensorService
-# from app.repositories.user_repo import UserRepository
-# from app.services.user_service import UserService
+from repository.userRepository import UserRepository
+from repository.sessionRepository import SessionRepository
+from service.authService import AuthService
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -27,11 +28,17 @@ def get_raw_sensor_service(
     har: Annotated[HarModelService, Depends(get_har_model_service)],
     data_dir: Annotated[Path, Depends(get_data_dir)],
 ) -> RawSensorService:
-    # By default this is per-request; see “Singletons” below
+    # By default this is per-request; see "Singletons" below
     return RawSensorService(har, data_dir)
 
-# def get_user_repo(db: Session = Depends(get_db)) -> UserRepository:
-#     return UserRepository(db)
+def get_user_repository(db: Annotated[Session, Depends(get_db)]) -> UserRepository:
+    return UserRepository(db)
 
-# def get_user_service(repo: UserRepository = Depends(get_user_repo)) -> UserService:
-#     return UserService(repo)
+def get_session_repository(db: Annotated[Session, Depends(get_db)]) -> SessionRepository:
+    return SessionRepository(db)
+
+def get_auth_service(
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+    session_repo: Annotated[SessionRepository, Depends(get_session_repository)]
+) -> AuthService:
+    return AuthService(user_repo, session_repo)
