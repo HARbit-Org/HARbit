@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.harbit.ui.components.ButtonGroup
 import com.example.harbit.ui.components.MaterialDatePicker
 
@@ -27,8 +28,11 @@ import com.example.harbit.ui.components.MaterialDatePicker
 @Composable
 fun ProfileCompletionScreen(
     onProfileComplete: () -> Unit,
-    onPrivacyPolicyClick: () -> Unit
+    onPrivacyPolicyClick: () -> Unit = {},
+    viewModel: ProfileCompletionViewModel = hiltViewModel()
 ) {
+    val updateState by viewModel.updateState.collectAsState()
+    
     var userName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -53,6 +57,19 @@ fun ProfileCompletionScreen(
     var heightError by remember { mutableStateOf("") }
     
     var hasTriedSubmit by remember { mutableStateOf(false) }
+
+    // Handle profile update state
+    LaunchedEffect(updateState) {
+        when (updateState) {
+            is ProfileUpdateState.Success -> {
+                onProfileComplete()
+            }
+            is ProfileUpdateState.Error -> {
+                // Error is already shown via updateState
+            }
+            else -> { /* No action needed */ }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -346,7 +363,26 @@ fun ProfileCompletionScreen(
                 // Only proceed if all validations pass
                 if (isUserNameValid && isEmailValid && isPhoneValid && 
                     isBirthDateValid && isWeightValid && isHeightValid && privacyAccepted) {
-                    onProfileComplete()
+                    
+                    // Extract year from birth date (format: DD/MM/YYYY)
+                    val birthYear = birthDate.split("/").last().toIntOrNull() ?: 2000
+                    
+                    // Map gender to backend format
+                    val genderMapping = mapOf(
+                        "Masculino" to "male",
+                        "Femenino" to "female",
+                        "Otro" to "other"
+                    )
+                    
+                    viewModel.updateProfile(
+                        displayName = userName,
+                        preferredEmail = email,
+                        phone = phone,
+                        sex = genderMapping[selectedGender] ?: "other",
+                        birthYear = birthYear,
+                        height = height.toFloatOrNull() ?: 0f,
+                        weight = weight.toFloatOrNull() ?: 0f
+                    )
                 }
             },
             modifier = Modifier
@@ -355,12 +391,29 @@ fun ProfileCompletionScreen(
                 containerColor = MaterialTheme.colorScheme.primary
             ),
             shape = RoundedCornerShape(16.dp),
-            enabled = privacyAccepted
+            enabled = privacyAccepted && updateState !is ProfileUpdateState.Loading
         ) {
+            if (updateState is ProfileUpdateState.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(
+                    text = "¡Listo!",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
+        
+        // Show error message if update failed
+        if (updateState is ProfileUpdateState.Error) {
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "¡Listo!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimary
+                text = (updateState as ProfileUpdateState.Error).message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
             )
         }
         

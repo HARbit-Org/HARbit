@@ -18,5 +18,8 @@ data class AuthResponseDto(
     val expiresIn: Int,
     
     @SerialName("user")
-    val user: UserDto
+    val user: UserDto,
+    
+    @SerialName("is_profile_complete")
+    val isProfileComplete: Boolean
 )

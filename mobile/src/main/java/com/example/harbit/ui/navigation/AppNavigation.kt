@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.harbit.ui.components.HARbitBottomNavigation
 import com.example.harbit.ui.screens.auth.*
+import com.example.harbit.ui.screens.splash.SplashScreen
 import com.example.harbit.ui.screens.dashboard.DashboardScreen
 import com.example.harbit.ui.screens.details.*
 import com.example.harbit.ui.screens.onboarding.SmartwatchSetupScreen
@@ -19,7 +20,7 @@ import com.example.harbit.ui.screens.progress.ProgressScreen
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    startDestination: String = "welcome"
+    startDestination: String = "splash"  // 🆕 Changed from "welcome" to "splash"
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -54,12 +55,35 @@ fun AppNavigation(
                 navController = navController,
                 startDestination = startDestination
             ) {
+                // 🆕 Splash Screen - Entry point that checks authentication
+                composable("splash") {
+                    SplashScreen(
+                        onNavigateToWelcome = {
+                            navController.navigate("welcome") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        },
+                        onNavigateToProfileCompletion = {
+                            navController.navigate("profile_completion") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        },
+                        onNavigateToMain = {
+                            navController.navigate("activity") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+                
                 // Authentication Flow
                 composable("welcome") {
                     WelcomeScreen(
                         onLoginSuccess = {
-                            // Navigate after successful authentication
-                            navController.navigate("profile_completion")
+                            // 🆕 Navigate to splash to re-check profile status
+                            navController.navigate("splash") {
+                                popUpTo("welcome") { inclusive = true }
+                            }
                         }
                     )
                 }
@@ -67,8 +91,9 @@ fun AppNavigation(
                 composable("profile_completion") {
                     ProfileCompletionScreen(
                         onProfileComplete = {
+                            // 🆕 After profile completion, go to smartwatch setup or activity
                             navController.navigate("smartwatch_setup") {
-                                popUpTo("welcome") { inclusive = true }
+                                popUpTo("profile_completion") { inclusive = true }
                             }
                         },
                         onPrivacyPolicyClick = {
@@ -92,7 +117,7 @@ fun AppNavigation(
                         },
                         onContinueClick = {
                             navController.navigate("activity") {
-                                popUpTo("welcome") { inclusive = true }
+                                popUpTo("smartwatch_setup") { inclusive = true }  // 🆕 Changed from "welcome"
                             }
                         }
                     )

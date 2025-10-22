@@ -110,12 +110,16 @@ class AuthService:
             ip_address=ip_address
         )
 
-        # 4. Return auth response
+        # 4. Check if profile is complete
+        is_profile_complete = self._is_profile_complete(user)
+
+        # 5. Return auth response
         return AuthResponseDto(
             access_token=session['access_token'],
             refresh_token=session['refresh_token'],
             user=self._user_to_dto(user).model_dump(),
-            expires_in=self.access_token_expire_hours * 3600
+            expires_in=self.access_token_expire_hours * 3600,
+            is_profile_complete=is_profile_complete
         )
 
     async def find_or_create_user(self, google_user: Dict[str, any]) -> Users:
@@ -283,11 +287,15 @@ class AuthService:
         # Create new session
         new_session = self.create_user_session(user.id)
 
+        # Check if profile is complete
+        is_profile_complete = self._is_profile_complete(user)
+
         return AuthResponseDto(
             access_token=new_session['access_token'],
             refresh_token=new_session['refresh_token'],
             user=self._user_to_dto(user).model_dump(),
-            expires_in=self.access_token_expire_hours * 3600
+            expires_in=self.access_token_expire_hours * 3600,
+            is_profile_complete=is_profile_complete
         )
 
     async def logout(self, session_id: str) -> bool:
@@ -306,3 +314,12 @@ class AuthService:
             daily_step_goal=user.daily_step_goal or 10000,
             timezone=user.timezone or "America/Lima"
         )
+    
+    def _is_profile_complete(self, user: Users) -> bool:
+        """Check if user has completed their profile"""
+        # Profile is complete if these required fields are filled:
+        return all([
+            user.sex is not None,
+            user.birth_year is not None
+            # Add more required fields as needed (e.g., phone, height, weight)
+        ])

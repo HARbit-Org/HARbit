@@ -9,3 +9,4 @@ class AuthResponseDto(BaseModel):
     token_type: str = "Bearer"
     user: dict
     expires_in: int
+    is_profile_complete: bool  # Indicates if user has completed their profile

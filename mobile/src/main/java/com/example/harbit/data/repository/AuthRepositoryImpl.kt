@@ -42,7 +42,8 @@ class AuthRepositoryImpl @Inject constructor(
                     userId = authResponse.user.id.toString(),
                     email = authResponse.user.email,
                     displayName = authResponse.user.displayName,
-                    pictureUrl = authResponse.user.pictureUrl
+                    pictureUrl = authResponse.user.pictureUrl,
+                    isProfileComplete = authResponse.isProfileComplete
                 )
                 
                 Result.success(authResponse)
@@ -66,12 +67,14 @@ class AuthRepositoryImpl @Inject constructor(
             if (response.isSuccessful && response.body() != null) {
                 val authResponse = response.body()!!
                 
-                // Save new tokens
+                // Save new tokens and update profile status
                 authPreferences.saveTokens(
                     accessToken = authResponse.accessToken,
                     refreshToken = authResponse.refreshToken,
                     expiresIn = authResponse.expiresIn
                 )
+                
+                authPreferences.updateProfileCompleteStatus(authResponse.isProfileComplete)
                 
                 Result.success(authResponse)
             } else {

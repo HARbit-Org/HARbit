@@ -9,6 +9,7 @@ from service.rawSensorService import RawSensorService
 from repository.userRepository import UserRepository
 from repository.sessionRepository import SessionRepository
 from service.authService import AuthService
+from service.userService import UserService
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -42,3 +43,8 @@ def get_auth_service(
     session_repo: Annotated[SessionRepository, Depends(get_session_repository)]
 ) -> AuthService:
     return AuthService(user_repo, session_repo)
+
+def get_user_service(
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)]
+) -> UserService:
+    return UserService(user_repo)

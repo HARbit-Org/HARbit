@@ -1,8 +1,10 @@
 package com.example.harbit.data.local.preferences
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -28,6 +30,7 @@ class AuthPreferencesRepository @Inject constructor(
         val USER_EMAIL = stringPreferencesKey("user_email")
         val USER_DISPLAY_NAME = stringPreferencesKey("user_display_name")
         val USER_PICTURE_URL = stringPreferencesKey("user_picture_url")
+        val IS_PROFILE_COMPLETE = booleanPreferencesKey("is_profile_complete")
     }
 
     suspend fun saveTokens(
@@ -36,25 +39,31 @@ class AuthPreferencesRepository @Inject constructor(
         expiresIn: Int
     ) {
         val expiryTime = System.currentTimeMillis() + (expiresIn * 1000L)
+        Log.d("AuthPreferences", "Saving tokens - Access: ${accessToken.take(10)}..., Refresh: ${refreshToken.take(10)}..., ExpiresIn: $expiresIn")
         context.dataStore.edit { preferences ->
             preferences[Keys.ACCESS_TOKEN] = accessToken
             preferences[Keys.REFRESH_TOKEN] = refreshToken
             preferences[Keys.TOKEN_EXPIRY] = expiryTime
         }
+        Log.d("AuthPreferences", "Tokens saved successfully")
     }
 
     suspend fun saveUserInfo(
         userId: String,
         email: String,
         displayName: String?,
-        pictureUrl: String?
+        pictureUrl: String?,
+        isProfileComplete: Boolean
     ) {
+        Log.d("AuthPreferences", "Saving user info - UserId: $userId, Email: $email, ProfileComplete: $isProfileComplete")
         context.dataStore.edit { preferences ->
             preferences[Keys.USER_ID] = userId
             preferences[Keys.USER_EMAIL] = email
             displayName?.let { preferences[Keys.USER_DISPLAY_NAME] = it }
             pictureUrl?.let { preferences[Keys.USER_PICTURE_URL] = it }
+            preferences[Keys.IS_PROFILE_COMPLETE] = isProfileComplete
         }
+        Log.d("AuthPreferences", "User info saved successfully")
     }
 
     suspend fun getAccessToken(): String? {
@@ -71,7 +80,10 @@ class AuthPreferencesRepository @Inject constructor(
     }
 
     val isLoggedIn: Flow<Boolean> = context.dataStore.data.map { preferences ->
-        !preferences[Keys.ACCESS_TOKEN].isNullOrEmpty()
+        val token = preferences[Keys.ACCESS_TOKEN]
+        val result = !token.isNullOrEmpty()
+        Log.d("AuthPreferences", "isLoggedIn check - Token: ${token?.take(10)}, Result: $result")
+        result
     }
 
     val userEmail: Flow<String?> = context.dataStore.data.map { preferences ->
@@ -86,6 +98,16 @@ class AuthPreferencesRepository @Inject constructor(
         preferences[Keys.USER_PICTURE_URL]
     }
 
+    val isProfileComplete: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[Keys.IS_PROFILE_COMPLETE] ?: false
+    }
+
+    suspend fun updateProfileCompleteStatus(isComplete: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.IS_PROFILE_COMPLETE] = isComplete
+        }
+    }
+
     suspend fun clearTokens() {
         context.dataStore.edit { preferences ->
             preferences.remove(Keys.ACCESS_TOKEN)
@@ -95,6 +117,7 @@ class AuthPreferencesRepository @Inject constructor(
             preferences.remove(Keys.USER_EMAIL)
             preferences.remove(Keys.USER_DISPLAY_NAME)
             preferences.remove(Keys.USER_PICTURE_URL)
+            preferences.remove(Keys.IS_PROFILE_COMPLETE)
         }
     }
 }

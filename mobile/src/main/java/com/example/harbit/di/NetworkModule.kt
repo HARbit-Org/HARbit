@@ -3,6 +3,7 @@ package com.example.harbit.di
 import com.example.harbit.data.remote.interceptor.AuthInterceptor
 import com.example.harbit.data.remote.service.AuthApiService
 import com.example.harbit.data.remote.service.BackendApiService
+import com.example.harbit.data.remote.service.UserApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -71,5 +72,11 @@ object NetworkModule {
         // Set the auth service in the interceptor to handle token refresh
         authInterceptor.setAuthApiService(authService)
         return authService
+    }
+    
+    @Provides
+    @Singleton
+    fun provideUserApiService(retrofit: Retrofit): UserApiService {
+        return retrofit.create(UserApiService::class.java)
     }
 }
