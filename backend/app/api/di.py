@@ -8,8 +8,10 @@ from pathlib import Path
 from service.rawSensorService import RawSensorService
 from repository.userRepository import UserRepository
 from repository.sessionRepository import SessionRepository
+from repository.activityRepository import ActivityRepository
 from service.authService import AuthService
 from service.userService import UserService
+from service.activityService import ActivityService
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -48,3 +50,11 @@ def get_user_service(
     user_repo: Annotated[UserRepository, Depends(get_user_repository)]
 ) -> UserService:
     return UserService(user_repo)
+
+def get_activity_repository(db: Annotated[Session, Depends(get_db)]) -> ActivityRepository:
+    return ActivityRepository(db)
+
+def get_activity_service(
+    activity_repo: Annotated[ActivityRepository, Depends(get_activity_repository)]
+) -> ActivityService:
+    return ActivityService(activity_repo)

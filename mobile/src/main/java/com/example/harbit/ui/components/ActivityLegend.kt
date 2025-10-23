@@ -18,28 +18,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.harbit.ui.theme.eatColor
-import com.example.harbit.ui.theme.exerciseColor
-import com.example.harbit.ui.theme.otherColor
-import com.example.harbit.ui.theme.sedentarismColor
-import com.example.harbit.ui.theme.standColor
-import com.example.harbit.ui.theme.walkColor
+import com.example.harbit.data.local.dao.ActivityDistribution
+import com.example.harbit.ui.theme.getActivityInfo
 
 @Composable
-fun ActivityLegend() {
-    val activities = listOf(
-        Triple(sedentarismColor, "Sedentario", "30%"),
-        Triple(walkColor, "Caminar", "20%"),
-        Triple(standColor, "De pie", "10%"),
-        Triple(eatColor, "Comer", "10%"),
-        Triple(otherColor, "Otro", "15%"),
-        Triple(exerciseColor, "Ejercicio", "15%"),
-    )
+fun ActivityLegend(activities: List<ActivityDistribution>) {
+    val displayActivities = activities.map { activity ->
+        val activityInfo = getActivityInfo(activity.activityLabel)
+        Triple(
+            activityInfo.color,
+            activityInfo.displayName,
+            String.format("%.0f%%", activity.percentage)
+        )
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        activities.chunked(3).forEach { row ->
+        displayActivities.chunked(3).forEach { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
@@ -55,7 +51,7 @@ fun ActivityLegend() {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = name,
+                            text = "$name ($percentage)",
                             fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

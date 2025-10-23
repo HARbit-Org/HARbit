@@ -21,9 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.harbit.data.local.dao.ActivityDistribution
 
 @Composable
 fun ActivityDistributionCard(
+    activities: List<ActivityDistribution>,
+    totalHours: Double,
     onCardClick: () -> Unit
 ) {
     Column(
@@ -37,14 +40,14 @@ fun ActivityDistributionCard(
             modifier = Modifier.size(250.dp),
             contentAlignment = Alignment.Center
         ) {
-            ActivityPieChart()
+            ActivityPieChart(activities = activities)
 
             // Center text
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "14 hs",
+                    text = String.format("%.1f hs", totalHours),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -58,6 +61,6 @@ fun ActivityDistributionCard(
         }
 
         // Activity Legend
-        ActivityLegend()
+        ActivityLegend(activities = activities)
     }
 }

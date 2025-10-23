@@ -1,6 +1,7 @@
 package com.example.harbit.di
 
 import com.example.harbit.data.remote.interceptor.AuthInterceptor
+import com.example.harbit.data.remote.service.ActivityApiService
 import com.example.harbit.data.remote.service.AuthApiService
 import com.example.harbit.data.remote.service.BackendApiService
 import com.example.harbit.data.remote.service.UserApiService
@@ -78,5 +79,11 @@ object NetworkModule {
     @Singleton
     fun provideUserApiService(retrofit: Retrofit): UserApiService {
         return retrofit.create(UserApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideActivityApiService(retrofit: Retrofit): ActivityApiService {
+        return retrofit.create(ActivityApiService::class.java)
     }
 }

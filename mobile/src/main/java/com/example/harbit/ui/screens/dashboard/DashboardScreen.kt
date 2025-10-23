@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.harbit.ui.components.Header
 import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material.icons.outlined.WatchOff
@@ -36,6 +40,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.components.AlertCard
+import java.time.LocalDate
 
 import kotlin.math.cos
 import kotlin.math.sin
@@ -46,7 +51,15 @@ fun DashboardScreen(
     onActivityDetailClick: () -> Unit,
     onHeartRateClick: () -> Unit,
     onStepsClick: () -> Unit,
+    viewModel: ActivityDistributionViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    
+    // Load today's activity distribution on first composition
+    LaunchedEffect(Unit) {
+        val today = LocalDate.now()
+        viewModel.loadActivityDistribution(today, today)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,9 +101,70 @@ fun DashboardScreen(
         }
 
         // Activity Distribution Card
-        ActivityDistributionCard(
-            onCardClick = onActivityDetailClick
-        )
+        when (state) {
+            is ActivityDistributionState.Loading -> {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+            is ActivityDistributionState.Success -> {
+                ActivityDistributionCard(
+                    activities = (state as ActivityDistributionState.Success).activities,
+                    totalHours = (state as ActivityDistributionState.Success).totalHours,
+                    onCardClick = onActivityDetailClick
+                )
+            }
+            is ActivityDistributionState.Error -> {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = (state as ActivityDistributionState.Error).message,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+            is ActivityDistributionState.Empty -> {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No hay datos de actividad para hoy",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(18.dp))
 

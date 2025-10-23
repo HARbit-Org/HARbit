@@ -10,15 +10,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.example.harbit.ui.theme.eatColor
-import com.example.harbit.ui.theme.exerciseColor
-import com.example.harbit.ui.theme.otherColor
-import com.example.harbit.ui.theme.sedentarismColor
-import com.example.harbit.ui.theme.standColor
-import com.example.harbit.ui.theme.walkColor
+import com.example.harbit.data.local.dao.ActivityDistribution
+import com.example.harbit.ui.theme.getActivityInfo
 
 @Composable
-fun ActivityPieChart() {
+fun ActivityPieChart(activities: List<ActivityDistribution>) {
     val density = LocalDensity.current
     val strokeWidth = with(density) { 35.dp.toPx() }
 
@@ -30,30 +26,21 @@ fun ActivityPieChart() {
         val centerY = size.height / 2f
         val radius = (size.width / 2f) - strokeWidth / 2f
 
-        // Activity data (percentages)
-        val activities = listOf(
-            Triple(sedentarismColor, 30f, "Sedentario"),
-            Triple(walkColor, 20f, "Caminar"),
-            Triple(standColor, 10f, "De pie"),
-            Triple(eatColor, 10f, "Comer"),
-            Triple(otherColor, 15f, "Otro"),
-            Triple(exerciseColor, 15f, "Ejercicio"),
-        )
-
         var startAngle = -90f
 
-        activities.forEach { (color, percentage, _) ->
-            val sweepAngle = (percentage / 100f) * 360f
+        activities.forEach { activity ->
+            val activityInfo = getActivityInfo(activity.activityLabel)
+            val sweepAngle = (activity.percentage / 100f) * 360f
 
             drawArc(
-                color = color,
+                color = activityInfo.color,
                 startAngle = startAngle,
-                sweepAngle = sweepAngle,
+                sweepAngle = sweepAngle.toFloat(),
                 useCenter = false,
                 style = Stroke(width = strokeWidth)
             )
 
-            startAngle += sweepAngle
+            startAngle += sweepAngle.toFloat()
         }
     }
 }

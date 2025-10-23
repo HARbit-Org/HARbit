@@ -3,6 +3,7 @@ package com.example.harbit.di
 import android.content.Context
 import androidx.room.Room
 import com.example.harbit.data.local.SensorDatabase
+import com.example.harbit.data.local.dao.ProcessedActivityDao
 import com.example.harbit.data.local.dao.SensorBatchDao
 import com.example.harbit.data.local.dao.SensorReadingDao
 import dagger.Module
@@ -36,10 +37,15 @@ object DatabaseModule {
         return database.sensorBatchDao()
     }
 
-    // ✅ Add this method
     @Provides
     @Singleton
     fun provideSensorReadingDao(database: SensorDatabase): SensorReadingDao {
         return database.sensorReadingDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideProcessedActivityDao(database: SensorDatabase): ProcessedActivityDao {
+        return database.processedActivityDao()
     }
 }

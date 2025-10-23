@@ -222,8 +222,10 @@ val HARbitCyan = Color(0xff54cdcf)
 
 val sedentarismColor = Color(0xFFBA1A1A)
 val eatColor = Color(0xFF6F797A)
-val standColor = Color(0xFF9DF0FB)
+val typeColor = Color(0xFF9DF0FB)
 val walkColor = Color(0xFFD9E2FF)
 val exerciseColor = Color(0xFF006972)
 val otherColor = Color(0xFF515E7D)
+
+val writeColor = Color(0xFFBA521A)
 
