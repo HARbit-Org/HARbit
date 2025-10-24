@@ -19,11 +19,22 @@ interface ActivityRepository {
     
     /**
      * Fetch activity distribution from backend API for a date range and sync to local database.
-     * Returns the distribution data.
+     * Returns cached data immediately if available, otherwise fetches from API.
      * 
      * For a single day, pass the same date for both parameters.
      */
     suspend fun fetchAndSyncActivityDistribution(
+        dateStart: LocalDate,
+        dateEnd: LocalDate
+    ): Result<List<ActivityDistribution>>
+    
+    /**
+     * Refresh activity distribution from backend in the background.
+     * Use this after initial cached data is displayed to get fresh data.
+     * 
+     * For a single day, pass the same date for both parameters.
+     */
+    suspend fun refreshActivityDistributionInBackground(
         dateStart: LocalDate,
         dateEnd: LocalDate
     ): Result<List<ActivityDistribution>>

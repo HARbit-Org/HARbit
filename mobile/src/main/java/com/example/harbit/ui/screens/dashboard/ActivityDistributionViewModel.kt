@@ -1,10 +1,13 @@
 package com.example.harbit.ui.screens.dashboard
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.harbit.data.local.dao.ActivityDistribution
 import com.example.harbit.data.repository.ActivityRepository
+import com.example.harbit.domain.events.SensorDataEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +27,8 @@ sealed class ActivityDistributionState {
 
 @HiltViewModel
 class ActivityDistributionViewModel @Inject constructor(
-    private val activityRepository: ActivityRepository
+    private val activityRepository: ActivityRepository,
+    private val sensorDataEvents: SensorDataEvents
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ActivityDistributionState>(ActivityDistributionState.Loading)
@@ -35,12 +39,40 @@ class ActivityDistributionViewModel @Inject constructor(
     )
     val selectedDateRange: StateFlow<Pair<LocalDate, LocalDate>> = _selectedDateRange.asStateFlow()
 
-    // init {
-    //     loadActivityDistribution()
-    // }
+    private var dataUploadListenerJob: Job? = null
+
+    /**
+     * Start listening for sensor data upload events.
+     * When data is uploaded, automatically refresh the distribution.
+     */
+    fun startListeningForDataUploads() {
+        Log.d("ActivityDistViewModel", "Starting to listen for data upload events")
+        dataUploadListenerJob?.cancel()
+        dataUploadListenerJob = viewModelScope.launch {
+            sensorDataEvents.dataUploadedEvent.collect {
+                Log.d("ActivityDistViewModel", "Data upload event received, refreshing...")
+                refreshInBackground()
+            }
+        }
+    }
+
+    /**
+     * Stop listening for data upload events.
+     */
+    fun stopListeningForDataUploads() {
+        Log.d("ActivityDistViewModel", "Stopped listening for data upload events")
+        dataUploadListenerJob?.cancel()
+        dataUploadListenerJob = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopListeningForDataUploads()
+    }
 
     /**
      * Load activity distribution for a date range.
+     * Loads cached data immediately, then refreshes from backend in background.
      * For a single day, pass the same date for both parameters.
      */
     fun loadActivityDistribution(dateStart: LocalDate = LocalDate.now(), dateEnd: LocalDate = LocalDate.now()) {
@@ -49,14 +81,42 @@ class ActivityDistributionViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Try to fetch from backend and sync
-                val result = activityRepository.fetchAndSyncActivityDistribution(dateStart, dateEnd)
+                // STEP 1: Load from cache first (instant display)
+                val cachedResult = activityRepository.fetchAndSyncActivityDistribution(dateStart, dateEnd)
                 
-                handleDistributionResult(result)
+                handleDistributionResult(cachedResult)
+                
+                // STEP 2: If we got cached data, refresh in background
+                if (cachedResult.isSuccess) {
+                    refreshInBackground()
+                }
             } catch (e: Exception) {
                 _state.value = ActivityDistributionState.Error(
                     e.message ?: "An unexpected error occurred"
                 )
+            }
+        }
+    }
+
+    /**
+     * Refresh data from backend in background without showing loading state.
+     */
+    private fun refreshInBackground() {
+        viewModelScope.launch {
+            try {
+                val (dateStart, dateEnd) = _selectedDateRange.value
+                val refreshResult = activityRepository.refreshActivityDistributionInBackground(dateStart, dateEnd)
+                
+                // Only update UI if refresh succeeded
+                if (refreshResult.isSuccess) {
+                    Log.d("ActivityDistViewModel", "Background refresh successful")
+                    handleDistributionResult(refreshResult)
+                } else {
+                    Log.d("ActivityDistViewModel", "Background refresh failed, keeping cached data")
+                }
+            } catch (e: Exception) {
+                Log.d("ActivityDistViewModel", "Background refresh error: ${e.message}")
+                // Silently fail - keep showing current data
             }
         }
     }

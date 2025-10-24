@@ -10,6 +10,7 @@ import com.example.harbit.data.remote.dto.SensorBatchDto
 import com.example.harbit.data.remote.dto.SensorReadingDto
 import com.example.harbit.data.remote.dto.request.SensorBatchUploadRequest
 import com.example.harbit.data.remote.service.BackendApiService
+import com.example.harbit.domain.events.SensorDataEvents
 import com.example.harbit.domain.model.SensorBatch
 import com.example.harbit.domain.model.SensorReading
 import com.example.harbit.domain.model.enum.SensorType
@@ -24,7 +25,8 @@ class SensorRepositoryImpl @Inject constructor(
     private val batchDao: SensorBatchDao,
     private val readingDao: SensorReadingDao,
     private val apiService: BackendApiService,
-    private val authPreferences: AuthPreferencesRepository
+    private val authPreferences: AuthPreferencesRepository,
+    private val sensorDataEvents: SensorDataEvents
 ) : SensorRepository {
 
     override suspend fun insertBatch(deviceId: String, readings: List<SensorReading>) {
@@ -116,6 +118,13 @@ class SensorRepositoryImpl @Inject constructor(
             val response = apiService.uploadSensorData(request)
             val body = response.body()
             Log.d("SensorRepo", "Upload successful: ${body?.status}")
+            
+            // Notify that new data has been uploaded successfully
+            if (response.isSuccessful && body?.status == "success") {
+                sensorDataEvents.notifyDataUploaded()
+                Log.d("SensorRepo", "Notified data upload event")
+            }
+            
             true
         } catch (e: Exception) {
             Log.e("SensorRepo", "Upload failed", e)

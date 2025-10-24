@@ -55,11 +55,21 @@ fun DashboardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     
-    // Load today's activity distribution on first composition
+    // Load today's activity distribution on first composition AND when returning to screen
     LaunchedEffect(Unit) {
         val today = LocalDate.now()
         viewModel.loadActivityDistribution(today, today)
+        // Start listening for sensor data upload events
+        viewModel.startListeningForDataUploads()
     }
+    
+    // Stop listening when leaving screen
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            viewModel.stopListeningForDataUploads()
+        }
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
