@@ -8,19 +8,17 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 class AuthInterceptor @Inject constructor(
-    private val authPreferences: AuthPreferencesRepository
+    private val authPreferences: AuthPreferencesRepository,
+    @javax.inject.Named("AuthApiService") private val authApiServiceProvider: Provider<AuthApiService>
 ) : Interceptor {
 
-    @Volatile
-    private var authApiService: AuthApiService? = null
-
-    fun setAuthApiService(service: AuthApiService) {
-        Log.d(TAG, "setAuthApiService called, service: $service")
-        authApiService = service
+    companion object {
+        private const val TAG = "AuthInterceptor"
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -50,10 +48,11 @@ class AuthInterceptor @Inject constructor(
 
         // If we get 401 Unauthorized, try to refresh the token
         if (response.code == 401) {
-            Log.d(TAG, "Got 401 response, authApiService available: ${authApiService != null}")
+            Log.d(TAG, "Got 401 response, attempting token refresh...")
             
-            if (authApiService != null) {
-                Log.d(TAG, "Attempting token refresh...")
+            try {
+                val authApiService = authApiServiceProvider.get()
+                Log.d(TAG, "Retrieved authApiService from provider")
                 response.close()
 
                 synchronized(this) {
@@ -65,7 +64,7 @@ class AuthInterceptor @Inject constructor(
                             // Attempt to refresh the token
                             Log.d(TAG, "Calling refresh token endpoint...")
                             val refreshResponse = runBlocking {
-                                authApiService!!.refreshToken(
+                                authApiService.refreshToken(
                                     RefreshTokenRequestDto(refreshToken)
                                 )
                             }
@@ -115,17 +114,13 @@ class AuthInterceptor @Inject constructor(
                         runBlocking { authPreferences.clearTokens() }
                     }
                 }
-            } else {
-                Log.e(TAG, "Cannot refresh token: authApiService is null!")
+            } catch (e: Exception) {
+                Log.e(TAG, "Cannot refresh token: ${e.message}", e)
                 response.close()
                 runBlocking { authPreferences.clearTokens() }
             }
         }
 
         return response
-    }
-
-    companion object {
-        private const val TAG = "AuthInterceptor"
     }
 }

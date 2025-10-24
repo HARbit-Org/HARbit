@@ -101,14 +101,20 @@ object NetworkModule {
     
     @Provides
     @Singleton
+    @javax.inject.Named("AuthApiService")
     fun provideAuthApiService(
-        @javax.inject.Named("AuthRetrofit") retrofit: Retrofit,
-        authInterceptor: AuthInterceptor
+        @javax.inject.Named("AuthRetrofit") retrofit: Retrofit
     ): AuthApiService {
-        val authService = retrofit.create(AuthApiService::class.java)
-        // Set the auth service in the interceptor to handle token refresh
-        authInterceptor.setAuthApiService(authService)
-        return authService
+        return retrofit.create(AuthApiService::class.java)
+    }
+    
+    // Also provide non-named version for regular injection
+    @Provides
+    @Singleton
+    fun provideAuthApiServiceUnnamed(
+        @javax.inject.Named("AuthApiService") authApiService: AuthApiService
+    ): AuthApiService {
+        return authApiService
     }
     
     @Provides

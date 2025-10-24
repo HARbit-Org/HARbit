@@ -22,7 +22,7 @@ val activityInfoMap = mapOf(
     "eat" to ActivityInfo(eatColor, "Comer"),
     "workouts" to ActivityInfo(exerciseColor, "Ejercicio"),
     "write" to ActivityInfo(writeColor, "Escribir"),
-    "other" to ActivityInfo(otherColor, "Otro")
+    "others" to ActivityInfo(otherColor, "Otros")
 )
 
 /**
