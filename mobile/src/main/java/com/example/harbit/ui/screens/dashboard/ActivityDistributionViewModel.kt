@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.harbit.data.local.dao.ActivityDistribution
 import com.example.harbit.data.repository.ActivityRepository
 import com.example.harbit.domain.events.SensorDataEvents
+import com.example.harbit.service.WatchConnectionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +29,8 @@ sealed class ActivityDistributionState {
 @HiltViewModel
 class ActivityDistributionViewModel @Inject constructor(
     private val activityRepository: ActivityRepository,
-    private val sensorDataEvents: SensorDataEvents
+    private val sensorDataEvents: SensorDataEvents,
+    private val watchConnectionManager: WatchConnectionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ActivityDistributionState>(ActivityDistributionState.Loading)
@@ -38,6 +40,9 @@ class ActivityDistributionViewModel @Inject constructor(
         Pair(LocalDate.now(), LocalDate.now())
     )
     val selectedDateRange: StateFlow<Pair<LocalDate, LocalDate>> = _selectedDateRange.asStateFlow()
+
+    // Use the WatchConnectionManager's state instead of our own
+    val isWatchConnected: StateFlow<Boolean> = watchConnectionManager.isWatchConnected
 
     private var dataUploadListenerJob: Job? = null
 
@@ -54,6 +59,10 @@ class ActivityDistributionViewModel @Inject constructor(
                 refreshInBackground()
             }
         }
+        
+        // Start monitoring watch connection (this sends immediate ping)
+        watchConnectionManager.startMonitoring()
+        Log.d("ActivityDistViewModel", "Watch connection monitoring started")
     }
 
     /**
@@ -63,6 +72,18 @@ class ActivityDistributionViewModel @Inject constructor(
         Log.d("ActivityDistViewModel", "Stopped listening for data upload events")
         dataUploadListenerJob?.cancel()
         dataUploadListenerJob = null
+        
+        // Stop monitoring watch connection
+        watchConnectionManager.stopMonitoring()
+    }
+    
+    /**
+     * Check if watch is connected by sending an immediate ping.
+     * Note: This is now handled automatically by startListeningForDataUploads()
+     */
+    fun checkWatchConnection() {
+        Log.d("ActivityDistViewModel", "Manual connection check triggered")
+        watchConnectionManager.checkConnection()
     }
 
     override fun onCleared() {

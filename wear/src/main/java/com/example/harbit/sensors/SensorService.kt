@@ -11,15 +11,19 @@ import android.hardware.SensorManager
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import com.google.android.gms.wearable.MessageClient
+import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import java.nio.ByteBuffer
 
-class SensorService : LifecycleService(), SensorEventListener {
+class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnMessageReceivedListener {
 
     companion object {
         private const val CHANNEL_ID = "sensor_stream"
         private const val NOTIF_ID = 1
         private const val MSG_PATH = "/sensor_data"
+        private const val PING_PATH = "/ping"
+        private const val PONG_PATH = "/pong"
         
         // 20 Hz sampling rate for each sensor
         private const val SAMPLE_RATE_HZ = 20
@@ -67,25 +71,9 @@ class SensorService : LifecycleService(), SensorEventListener {
 //            android.util.Log.e("SensorService", "No gyroscope available!")
 //        }
 
-        // Add message listener for connection validation from mobile
-//        Wearable.getMessageClient(this).addListener { messageEvent ->
-//            if (messageEvent.path == "/mobile-connected") {
-//                android.util.Log.d("SensorService", "Mobile connection confirmed from ${messageEvent.sourceNodeId}")
-//                // Send a small test payload to confirm bidirectional communication
-//                val testPayload = ByteBuffer.allocate(BYTES_PER_SAMPLE).apply {
-//                    putLong(SystemClock.elapsedRealtimeNanos())
-//                    put(1) // 1 = accelerometer
-//                    putFloat(0f)
-//                    putFloat(0f)
-//                    putFloat(0f)
-//                }.array()
-//
-//                msgClient.sendMessage(messageEvent.sourceNodeId, MSG_PATH, testPayload)
-//                    .addOnSuccessListener {
-//                        android.util.Log.d("SensorService", "Sent test data to confirm connection")
-//                    }
-//            }
-//        }
+        // Add message listener for ping/pong from mobile
+        msgClient.addListener(this)
+        android.util.Log.d("SensorService", "Message listener registered for ping/pong")
 
         // Verify if we have connected devices before starting the sensors
         nodeClient.connectedNodes.addOnSuccessListener { nodes ->
@@ -149,8 +137,25 @@ class SensorService : LifecycleService(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
-        // No need to explicitly remove message listeners in a service that's being destroyed
+        msgClient.removeListener(this)
         android.util.Log.d("SensorService", "Service is being destroyed")
+    }
+    
+    /**
+     * Handle incoming messages from the mobile app (ping requests)
+     */
+    override fun onMessageReceived(messageEvent: MessageEvent) {
+        if (messageEvent.path == PING_PATH) {
+            android.util.Log.d("SensorService", "Ping received from mobile, sending pong...")
+            // Respond with pong
+            msgClient.sendMessage(messageEvent.sourceNodeId, PONG_PATH, ByteArray(0))
+                .addOnSuccessListener {
+                    android.util.Log.d("SensorService", "Pong sent successfully")
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("SensorService", "Failed to send pong: ${e.message}")
+                }
+        }
     }
 
     private fun makeNotification(): Notification {

@@ -54,12 +54,13 @@ fun DashboardScreen(
     viewModel: ActivityDistributionViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isWatchConnected by viewModel.isWatchConnected.collectAsStateWithLifecycle()
     
     // Load today's activity distribution on first composition AND when returning to screen
     LaunchedEffect(Unit) {
         val today = LocalDate.now()
         viewModel.loadActivityDistribution(today, today)
-        // Start listening for sensor data upload events
+        // Start listening for sensor data upload events and watch connection monitoring
         viewModel.startListeningForDataUploads()
     }
     
@@ -87,7 +88,7 @@ fun DashboardScreen(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            if (true) {
+            if (isWatchConnected) {
                 Icon(
                     imageVector = Icons.Outlined.Watch,
                     contentDescription = "Watch Connected",
