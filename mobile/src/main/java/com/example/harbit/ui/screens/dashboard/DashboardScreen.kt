@@ -156,7 +156,7 @@ fun DashboardScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No hay datos de actividad para hoy",
+                            text = "Realiza actividad utilizando HARbit para obtener la distribución del día.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(16.dp)

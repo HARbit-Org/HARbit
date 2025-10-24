@@ -30,9 +30,26 @@ object NetworkModule {
         isLenient = true
     }
     
+    // OkHttpClient WITHOUT auth interceptor - used only for auth endpoints
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+    @javax.inject.Named("AuthClient")
+    fun provideAuthOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+    
+    // OkHttpClient WITH auth interceptor - used for all other endpoints
+    @Provides
+    @Singleton
+    @javax.inject.Named("ApiClient")
+    fun provideApiOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
@@ -44,14 +61,31 @@ object NetworkModule {
             .build()
     }
     
+    // Retrofit for auth endpoints (no auth interceptor)
     @Provides
     @Singleton
-    fun provideRetrofit(
-        okHttpClient: OkHttpClient,
+    @javax.inject.Named("AuthRetrofit")
+    fun provideAuthRetrofit(
+        @javax.inject.Named("AuthClient") okHttpClient: OkHttpClient,
         json: Json
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.18.113:8000") // TODO: Replace with your actual backend URL
+            .baseUrl("http://192.168.18.113:8000")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
+    
+    // Retrofit for other endpoints (with auth interceptor)
+    @Provides
+    @Singleton
+    @javax.inject.Named("ApiRetrofit")
+    fun provideApiRetrofit(
+        @javax.inject.Named("ApiClient") okHttpClient: OkHttpClient,
+        json: Json
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("http://192.168.18.113:8000")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
@@ -59,14 +93,16 @@ object NetworkModule {
     
     @Provides
     @Singleton
-    fun provideBackendApiService(retrofit: Retrofit): BackendApiService {
+    fun provideBackendApiService(
+        @javax.inject.Named("ApiRetrofit") retrofit: Retrofit
+    ): BackendApiService {
         return retrofit.create(BackendApiService::class.java)
     }
     
     @Provides
     @Singleton
     fun provideAuthApiService(
-        retrofit: Retrofit,
+        @javax.inject.Named("AuthRetrofit") retrofit: Retrofit,
         authInterceptor: AuthInterceptor
     ): AuthApiService {
         val authService = retrofit.create(AuthApiService::class.java)
@@ -77,13 +113,17 @@ object NetworkModule {
     
     @Provides
     @Singleton
-    fun provideUserApiService(retrofit: Retrofit): UserApiService {
+    fun provideUserApiService(
+        @javax.inject.Named("ApiRetrofit") retrofit: Retrofit
+    ): UserApiService {
         return retrofit.create(UserApiService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideActivityApiService(retrofit: Retrofit): ActivityApiService {
+    fun provideActivityApiService(
+        @javax.inject.Named("ApiRetrofit") retrofit: Retrofit
+    ): ActivityApiService {
         return retrofit.create(ActivityApiService::class.java)
     }
 }

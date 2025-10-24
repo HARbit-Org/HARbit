@@ -242,8 +242,8 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
         }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("HARbit Sync Active")
-            .setContentText("Collecting sensor data from smartwatch")
+            .setContentTitle("HARbit")
+            .setContentText("Conectado")
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .build()
@@ -254,8 +254,8 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
             val unsentCount = sensorRepository.getUnsentCount()
 
             val notification = NotificationCompat.Builder(this@SensorDataService, CHANNEL_ID)
-                .setContentTitle("HARbit Sync Active")
-                .setContentText("$unsentCount batches pending")
+                .setContentTitle("HARbit")
+                .setContentText("Conectado")
                 .setSmallIcon(R.drawable.ic_notification)
                 .setOngoing(true)
                 .build()

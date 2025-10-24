@@ -86,6 +86,10 @@ class AuthPreferencesRepository @Inject constructor(
         result
     }
 
+    val userId: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[Keys.USER_ID]
+    }
+
     val userEmail: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[Keys.USER_EMAIL]
     }

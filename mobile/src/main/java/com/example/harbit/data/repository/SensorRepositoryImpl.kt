@@ -5,6 +5,7 @@ import com.example.harbit.data.local.dao.SensorBatchDao
 import com.example.harbit.data.local.dao.SensorReadingDao
 import com.example.harbit.data.local.entity.SensorBatchEntity
 import com.example.harbit.data.local.entity.SensorReadingEntity
+import com.example.harbit.data.local.preferences.AuthPreferencesRepository
 import com.example.harbit.data.remote.dto.SensorBatchDto
 import com.example.harbit.data.remote.dto.SensorReadingDto
 import com.example.harbit.data.remote.dto.request.SensorBatchUploadRequest
@@ -14,6 +15,7 @@ import com.example.harbit.domain.model.SensorReading
 import com.example.harbit.domain.model.enum.SensorType
 import com.example.harbit.domain.repository.SensorRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import java.util.UUID
 import javax.inject.Inject
@@ -21,7 +23,8 @@ import javax.inject.Inject
 class SensorRepositoryImpl @Inject constructor(
     private val batchDao: SensorBatchDao,
     private val readingDao: SensorReadingDao,
-    private val apiService: BackendApiService
+    private val apiService: BackendApiService,
+    private val authPreferences: AuthPreferencesRepository
 ) : SensorRepository {
 
     override suspend fun insertBatch(deviceId: String, readings: List<SensorReading>) {
@@ -98,8 +101,15 @@ class SensorRepositoryImpl @Inject constructor(
                 )
             }
 
+            // Get authenticated user ID
+            val userId = authPreferences.userId.first()
+            if (userId == null) {
+                Log.e("SensorRepo", "No user ID available for upload")
+                return false
+            }
+
             val request = SensorBatchUploadRequest(
-                userId = "04a90055-ba8e-4934-af5a-c67da8316830",  // Get from auth
+                userId = userId,
                 batches = batchDtos
             )
 
