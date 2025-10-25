@@ -3,6 +3,7 @@ package com.example.harbit.ui.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,21 +74,21 @@ fun WelcomeScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Autenticando...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+//                    Text(
+//                        text = "Autenticando...",
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        color = MaterialTheme.colorScheme.onSurfaceVariant
+//                    )
                 }
                 is AuthState.Error -> {
                     // Show error message
-                    Text(
-                        text = (authState as AuthState.Error).message,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
+//                    Text(
+//                        text = (authState as AuthState.Error).message,
+//                        color = MaterialTheme.colorScheme.error,
+//                        style = MaterialTheme.typography.bodyMedium,
+//                        textAlign = TextAlign.Center,
+//                        modifier = Modifier.padding(bottom = 16.dp)
+//                    )
                     // Show button again to retry
                     GoogleSignInButton(
                         onClick = {
@@ -95,10 +96,10 @@ fun WelcomeScreen(
                             viewModel.signInWithGoogle("297962456687-1b01sulb6ndfjn83sneor62qqdt1qpum.apps.googleusercontent.com")
                         }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextButton(onClick = { viewModel.resetAuthState() }) {
-                        Text("Descartar")
-                    }
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    TextButton(onClick = { viewModel.resetAuthState() }) {
+//                        Text("Descartar")
+//                    }
                 }
                 else -> {
                     // Show Google Sign In button
@@ -119,25 +120,41 @@ private fun GoogleSignInButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Official Google Sign-In button design
+    // Following Google's branding guidelines
     Button(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = Color.White
         ),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(50.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDADADA))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Google icon would go here if we had the asset
+            // Google logo
+            Icon(
+                painter = painterResource(id = com.example.harbit.R.drawable.ic_google_logo),
+                contentDescription = "Google logo",
+                modifier = Modifier.size(24.dp),
+                tint = Color.Unspecified // Keep original colors
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // Official Google button text style
             Text(
-                text = "🔍 Accede con Google",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimary
+                text = "Accede con Google",
+                color = Color(0xFF757575), // Google's recommended text color
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 0.25.sp
             )
         }
     }
