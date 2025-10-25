@@ -228,33 +228,39 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         // Health Metrics Row
-        Row(
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize(0.5f),
-                horizontalArrangement = Arrangement
-                    .spacedBy(12.dp),
-            ) {
-                StepsCard(
-                    modifier = Modifier.weight(1f),
-                    onClick = onStepsClick
-                )
+//        Row(
+//            modifier = Modifier
+//                .fillMaxSize(),
+//            horizontalArrangement = Arrangement.Center
+//        ) {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxSize(0.5f),
+//                horizontalArrangement = Arrangement
+//                    .spacedBy(12.dp),
+//            ) {
+//                StepsCard(
+//                    modifier = Modifier.weight(1f),
+//                    onClick = onStepsClick
+//                )
+//
+////            HeartRateCard(
+////                modifier = Modifier.weight(1f),
+////                onClick = onHeartRateClick
+////            )
+//            }
+//        }
 
-//            HeartRateCard(
-//                modifier = Modifier.weight(1f),
-//                onClick = onHeartRateClick
-//            )
-            }
-        }
+//        Spacer(modifier = Modifier.height(18.dp))
+
+        AlertCard(
+            message = "Construye tu bienestar paso a paso"
+        )
 
         Spacer(modifier = Modifier.height(18.dp))
 
         AlertCard(
-            message = "Construye tu bienestar paso a paso"
+            message = "Una vida en movimiento es una vida saludable."
         )
 
         Spacer(modifier = Modifier.height(18.dp))
