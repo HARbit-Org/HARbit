@@ -33,7 +33,11 @@ fun MaterialDatePicker(
     val initialDateMillis = remember(date) {
         if (date.isNotBlank()) {
             runCatching {
-                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(date)?.time
+                // Parse with UTC timezone to match how we format
+                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                sdf.parse(date)?.time
             }.getOrNull()
         } else {
             null
@@ -93,7 +97,8 @@ fun MaterialDatePicker(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val calendar = Calendar.getInstance().apply {
+                            // Use UTC timezone to avoid date shifting
+                            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
                                 timeInMillis = millis
                             }
                             val formatted = String.format(

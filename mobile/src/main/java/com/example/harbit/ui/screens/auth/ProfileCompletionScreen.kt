@@ -33,15 +33,17 @@ fun ProfileCompletionScreen(
 ) {
     val updateState by viewModel.updateState.collectAsState()
     
-    var userName by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var birthDate by remember { mutableStateOf("") }
-    var selectedGender by remember { mutableStateOf("Masculino") }
-    var height by remember { mutableStateOf("") }
-    var weight by remember { mutableStateOf("") }
-    var privacyAccepted by remember { mutableStateOf(false) }
+    // Collect form state from ViewModel (persists across navigation)
+    val userName by viewModel.userName.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val phone by viewModel.phone.collectAsState()
+    val birthDate by viewModel.birthDate.collectAsState()
+    val selectedGender by viewModel.selectedGender.collectAsState()
+    val height by viewModel.height.collectAsState()
+    val weight by viewModel.weight.collectAsState()
+    val privacyAccepted by viewModel.privacyAccepted.collectAsState()
 
+    // Validation state (local to screen)
     var isUserNameValid by remember { mutableStateOf(true) }
     var isEmailValid by remember { mutableStateOf(true) }
     var isPhoneValid by remember { mutableStateOf(true) }
@@ -101,7 +103,7 @@ fun ProfileCompletionScreen(
         OutlinedTextField(
             value = userName,
             onValueChange = { 
-                userName = it
+                viewModel.updateUserName(it)
                 if (hasTriedSubmit) {
                     validateUserName(it) { isValid, error ->
                         isUserNameValid = isValid
@@ -132,7 +134,7 @@ fun ProfileCompletionScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { 
-                email = it
+                viewModel.updateEmail(it)
                 if (hasTriedSubmit) {
                     validateEmail(it) { isValid, error ->
                         isEmailValid = isValid
@@ -163,7 +165,7 @@ fun ProfileCompletionScreen(
         OutlinedTextField(
             value = phone,
             onValueChange = { 
-                phone = it
+                viewModel.updatePhone(it)
                 if (hasTriedSubmit) {
                     validatePhone(it) { isValid, error ->
                         isPhoneValid = isValid
@@ -195,7 +197,7 @@ fun ProfileCompletionScreen(
         MaterialDatePicker(
             date = birthDate,
             onDateChange = { 
-                birthDate = it
+                viewModel.updateBirthDate(it)
                 if (hasTriedSubmit) {
                     validateBirthDate(it) { isValid, error ->
                         isBirthDateValid = isValid
@@ -218,7 +220,7 @@ fun ProfileCompletionScreen(
         ButtonGroup(
             options = listOf("Masculino", "Femenino", "Otro"),
             selectedOption = selectedGender,
-            onSelected = { selectedGender = it }
+            onSelected = { viewModel.updateSelectedGender(it) }
         )
 
         
@@ -233,7 +235,7 @@ fun ProfileCompletionScreen(
                 OutlinedTextField(
                     value = weight,
                     onValueChange = { 
-                        weight = it
+                        viewModel.updateWeight(it)
                         if (hasTriedSubmit) {
                             validateWeight(it) { isValid, error ->
                                 isWeightValid = isValid
@@ -264,7 +266,7 @@ fun ProfileCompletionScreen(
                 OutlinedTextField(
                     value = height,
                     onValueChange = { 
-                        height = it
+                        viewModel.updateHeight(it)
                         if (hasTriedSubmit) {
                             validateHeight(it) { isValid, error ->
                                 isHeightValid = isValid
@@ -301,7 +303,7 @@ fun ProfileCompletionScreen(
         ) {
             Checkbox(
                 checked = privacyAccepted,
-                onCheckedChange = { privacyAccepted = it },
+                onCheckedChange = { viewModel.updatePrivacyAccepted(it) },
                 colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
             )
 

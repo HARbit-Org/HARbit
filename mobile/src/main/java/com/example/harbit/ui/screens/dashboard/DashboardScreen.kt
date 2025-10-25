@@ -140,7 +140,7 @@ fun DashboardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(350.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -156,21 +156,63 @@ fun DashboardScreen(
                 }
             }
             is ActivityDistributionState.Empty -> {
-                Card(
+                // Show empty chart with 0.0 hours in gray
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(350.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                        .clickable { onActivityDetailClick() },
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Activity Chart - Empty circle in light gray
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.size(250.dp),
                         contentAlignment = Alignment.Center
+                    ) {
+                        // Draw empty gray circle
+                        Canvas(
+                            modifier = Modifier.size(160.dp)
+                        ) {
+                            val strokeWidth = 35.dp.toPx()
+                            drawArc(
+                                color = Color.LightGray,
+                                startAngle = 0f,
+                                sweepAngle = 360f,
+                                useCenter = false,
+                                style = Stroke(width = strokeWidth)
+                            )
+                        }
+
+                        // Center text
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "0.0 hs",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "de actividad",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Message instead of legend
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Text(
                             text = "Realiza actividad utilizando HARbit para obtener la distribución del día.",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
