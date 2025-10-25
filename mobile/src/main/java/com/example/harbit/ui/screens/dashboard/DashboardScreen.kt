@@ -118,7 +118,7 @@ fun DashboardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(350.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
