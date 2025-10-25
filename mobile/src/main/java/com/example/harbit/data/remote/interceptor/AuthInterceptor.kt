@@ -23,9 +23,16 @@ class AuthInterceptor @Inject constructor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
+        val path = originalRequest.url.encodedPath
 
-        // Skip auth for auth endpoints
-        if (originalRequest.url.encodedPath.startsWith("/auth/")) {
+        // Determine if this is a logout request
+        val isLogoutRequest = path.contains("/logout")
+        
+        // Skip auth header for auth endpoints (except logout which needs the token)
+        val shouldSkipAuth = path.startsWith("/auth/") && !isLogoutRequest
+        
+        if (shouldSkipAuth) {
+            Log.d(TAG, "Skipping auth for: $path")
             return chain.proceed(originalRequest)
         }
 
@@ -33,7 +40,7 @@ class AuthInterceptor @Inject constructor(
         val accessToken = runBlocking { authPreferences.getAccessToken() }
         Log.d(
             TAG,
-            "Intercepting request to ${originalRequest.url.encodedPath}, has token: ${accessToken != null}"
+            "Intercepting request to $path, has token: ${accessToken != null}, isLogout: $isLogoutRequest"
         )
 
         val requestWithAuth = if (accessToken != null) {
@@ -46,9 +53,9 @@ class AuthInterceptor @Inject constructor(
 
         var response = chain.proceed(requestWithAuth)
 
-        // If we get 401 Unauthorized, try to refresh the token
-        if (response.code == 401) {
-            Log.d(TAG, "Got 401 response, attempting token refresh...")
+        // If we get 401 Unauthorized, try to refresh the token (but NOT for logout endpoints)
+        if (response.code == 401 && !isLogoutRequest) {
+            Log.d(TAG, "Got 401 response for $path, attempting token refresh...")
             
             try {
                 val authApiService = authApiServiceProvider.get()
@@ -119,6 +126,8 @@ class AuthInterceptor @Inject constructor(
                 response.close()
                 runBlocking { authPreferences.clearTokens() }
             }
+        } else if (response.code == 401 && isLogoutRequest) {
+            Log.d(TAG, "Got 401 for logout request - this is expected, not refreshing token")
         }
 
         return response

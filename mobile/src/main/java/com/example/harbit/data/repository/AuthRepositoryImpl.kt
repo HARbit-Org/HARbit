@@ -91,11 +91,14 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun logout(): Result<Unit> {
         return try {
             val response = authApiService.logout()
-            authPreferences.clearTokens()
             
-            if (response.isSuccessful) {
+            // For logout, both 200 and 401 are acceptable (401 means already logged out)
+            if (response.isSuccessful || response.code() == 401) {
+                authPreferences.clearTokens()
                 Result.success(Unit)
             } else {
+                // Clear tokens anyway on any response
+                authPreferences.clearTokens()
                 Result.failure(Exception("Logout failed: ${response.code()}"))
             }
         } catch (e: Exception) {
@@ -108,11 +111,13 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun logoutAll(): Result<Unit> {
         return try {
             val response = authApiService.logoutAll()
-            authPreferences.clearTokens()
             
             if (response.isSuccessful) {
+                authPreferences.clearTokens()
                 Result.success(Unit)
             } else {
+                // Clear tokens anyway on server rejection
+                authPreferences.clearTokens()
                 Result.failure(Exception("Logout all failed: ${response.code()}"))
             }
         } catch (e: Exception) {

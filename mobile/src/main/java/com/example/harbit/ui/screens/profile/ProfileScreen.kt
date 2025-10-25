@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,17 +21,86 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onLogoutSuccess: () -> Unit = {},
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     var userName by remember { mutableStateOf("John Doe") }
     var email by remember { mutableStateOf("john.doe@gmail.com") }
     var phone by remember { mutableStateOf("+51987654321") }
     var weight by remember { mutableStateOf("72.3") }
     var height by remember { mutableStateOf("176") }
     var dailyStepsGoal by remember { mutableStateOf("5000") }
+    
+    val logoutState by viewModel.logoutState.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    
+    // Handle logout state
+    LaunchedEffect(logoutState) {
+        when (logoutState) {
+            is LogoutState.Success -> {
+                showLogoutDialog = false
+                viewModel.resetLogoutState()
+                onLogoutSuccess()
+            }
+            else -> {}
+        }
+    }
+    
+    // Logout confirmation dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                if (logoutState !is LogoutState.Loading) {
+                    showLogoutDialog = false
+                    viewModel.resetLogoutState()
+                }
+            },
+            title = { Text("Cerrar sesión") },
+            text = { 
+                if (logoutState is LogoutState.Error) {
+                    Text((logoutState as LogoutState.Error).message)
+                } else {
+                    Text("¿Estás seguro de que deseas cerrar sesión?")
+                }
+            },
+            confirmButton = {
+                if (logoutState !is LogoutState.Error) {
+                    TextButton(
+                        onClick = {
+                            viewModel.logout()
+                        },
+                        enabled = logoutState !is LogoutState.Loading
+                    ) {
+                        if (logoutState is LogoutState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Sí, cerrar sesión")
+                        }
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showLogoutDialog = false
+                        viewModel.resetLogoutState()
+                    },
+                    enabled = logoutState !is LogoutState.Loading
+                ) {
+                    Text(if (logoutState is LogoutState.Error) "Cerrar" else "Cancelar")
+                }
+            }
+        )
+    }
     
     Column(
         modifier = Modifier
@@ -164,6 +234,40 @@ fun ProfileScreen() {
         
         // Settings Section
         SettingsSection()
+        
+        // Logout Button
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Button(
+                onClick = { showLogoutDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = "Cerrar sesión",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Cerrar sesión",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+            }
+        }
         
         Spacer(modifier = Modifier.height(100.dp)) // Space for bottom navigation
     }

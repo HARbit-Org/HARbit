@@ -139,7 +139,13 @@ fun AppNavigation(
                 }
                 
                 composable("profile") {
-                    ProfileScreen()
+                    ProfileScreen(
+                        onLogoutSuccess = {
+                            navController.navigate("welcome") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    )
                 }
                 
                 composable("progress") {
