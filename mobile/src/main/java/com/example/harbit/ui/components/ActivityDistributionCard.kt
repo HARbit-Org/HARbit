@@ -27,12 +27,19 @@ import com.example.harbit.data.local.dao.ActivityDistribution
 fun ActivityDistributionCard(
     activities: List<ActivityDistribution>,
     totalHours: Double,
-    onCardClick: () -> Unit
+    onCardClick: () -> Unit,
+    clickable: Boolean = true
 ) {
-    Column(
-        modifier = Modifier
+    val modifier = if (clickable) {
+        Modifier
             .fillMaxWidth()
-            .clickable { onCardClick() },
+            .clickable { onCardClick() }
+    } else {
+        Modifier.fillMaxWidth()
+    }
+    
+    Column(
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Activity Chart

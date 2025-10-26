@@ -28,7 +28,7 @@ fun ActivityLegend(activities: List<ActivityDistribution>) {
         Triple(
             activityInfo.color,
             activityInfo.displayName,
-            String.format("%.0f%%", activity.percentage)
+            String.format("%.2f%%", activity.percentage)
         )
     }
 

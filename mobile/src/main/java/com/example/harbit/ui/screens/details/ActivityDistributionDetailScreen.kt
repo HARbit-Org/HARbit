@@ -28,10 +28,57 @@ import com.example.harbit.ui.components.MaterialDateRangePicker
 import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.screens.dashboard.ActivityDistributionState
 import com.example.harbit.ui.screens.dashboard.ActivityDistributionViewModel
+import com.example.harbit.ui.theme.getActivityInfo
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.roundToInt
 
-// Activity pie chart will be embedded here
+@Composable
+private fun ActivityListItem(
+    activityName: String,
+    hours: Float,
+    color: Color
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(color, CircleShape)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = activityName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Text(
+                text = formatHours(hours),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,7 +179,7 @@ fun ActivityDistributionDetailScreen(
                             .fillMaxWidth()
                             .height(400.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
@@ -147,7 +194,8 @@ fun ActivityDistributionDetailScreen(
                     ActivityDistributionCard(
                         activities = successState.activities,
                         totalHours = successState.totalHours,
-                        onCardClick = { } // No navigation needed in detail screen
+                        onCardClick = { }, // No navigation needed in detail screen
+                        clickable = false // Disable click in detail screen
                     )
                 }
                 is ActivityDistributionState.Error -> {
@@ -213,6 +261,70 @@ fun ActivityDistributionDetailScreen(
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // List
+                when (state) {
+                    is ActivityDistributionState.Success -> {
+                        val successState = state as ActivityDistributionState.Success
+
+                        successState.activities.forEach { activity ->
+                            val activityInfo = getActivityInfo(activity.activityLabel)
+                            ActivityListItem(
+                                activityName = activityInfo.displayName,
+                                hours = activity.totalHours.toFloat(),
+                                color = activityInfo.color
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                    is ActivityDistributionState.Error -> {
+                        Text(
+                            text = "Error al cargar actividades.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    is ActivityDistributionState.Empty -> {
+                        Text(
+                            text = "No has realizado actividades usando HARbit en el periodo seleccionado.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    is ActivityDistributionState.Loading -> {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(400.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+}
+
+private fun formatHours(hours: Float): String {
+    val totalMinutes = (hours * 60).roundToInt()
+    val h = totalMinutes / 60
+    val m = totalMinutes % 60
+    return "%dh %02d min".format(h, m)
 }
