@@ -299,7 +299,7 @@ fun ActivityDistributionDetailScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "Realiza actividad utilizando HARbit para obtener la distribución del día.",
+                                text = "No has realizado actividades usando HARbit en el periodo seleccionado.",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(16.dp),
