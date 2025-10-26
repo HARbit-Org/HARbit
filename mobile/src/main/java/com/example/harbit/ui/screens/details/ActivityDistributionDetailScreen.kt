@@ -292,13 +292,20 @@ fun ActivityDistributionDetailScreen(
                         )
                     }
                     is ActivityDistributionState.Empty -> {
-                        Text(
-                            text = "No has realizado actividades usando HARbit en el periodo seleccionado.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Realiza actividad utilizando HARbit para obtener la distribución del día.",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
                     is ActivityDistributionState.Loading -> {
                         Card(

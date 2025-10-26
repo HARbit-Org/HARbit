@@ -199,13 +199,11 @@ fun DashboardScreen(
                             )
                         }
                     }
-
-                    // Message instead of legend
-                    Card(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = "Realiza actividad utilizando HARbit para obtener la distribución del día.",
