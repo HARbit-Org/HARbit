@@ -140,8 +140,7 @@ fun MaterialDateRangePicker(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(start = 4.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
+                            .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -187,8 +186,7 @@ fun MaterialDateRangePicker(
                                     showDialog = false
                                 }
                             },
-                            enabled = dateRangePickerState.selectedStartDateMillis != null && 
-                                      dateRangePickerState.selectedEndDateMillis != null
+                            enabled = dateRangePickerState.selectedEndDateMillis != null
                         ) {
                             Text(text = "Guardar")
                         }
@@ -197,10 +195,7 @@ fun MaterialDateRangePicker(
                     // DateRangePicker takes remaining space
                     DateRangePicker(
                         state = dateRangePickerState,
-                        modifier = Modifier.weight(1f),
-                        colors = DatePickerDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
