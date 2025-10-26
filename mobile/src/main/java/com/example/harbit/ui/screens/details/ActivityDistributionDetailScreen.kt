@@ -150,7 +150,7 @@ fun ActivityDistributionDetailScreen(
                 subtitle = "Conoce el detalle de tus actividades diarias a lo largo del tiempo que HARbit te ha acompañado"
             )
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             MaterialDateRangePicker(
                 startDate = startDateStr,
