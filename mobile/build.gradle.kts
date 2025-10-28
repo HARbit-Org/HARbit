@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     alias(libs.plugins.kotlin.serialization)
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -111,6 +112,11 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.14")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

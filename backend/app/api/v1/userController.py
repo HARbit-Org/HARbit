@@ -5,7 +5,9 @@ from service.userService import UserService
 from api.di import get_user_service
 from api.v1.authController import get_current_user
 from model.dto.request.updateProfileDto import UpdateProfileDto
+from model.dto.request.updateFcmTokenRequestDto import UpdateFcmTokenRequestDto
 from model.dto.response.userDto import UserDto
+from model.dto.response.updateFcmTokenResponseDto import UpdateFcmTokenResponseDto
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -66,3 +68,31 @@ async def update_profile(
         import traceback
         print(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/fcm-token", response_model=UpdateFcmTokenResponseDto)
+async def update_fcm_token(
+    fcm_data: UpdateFcmTokenRequestDto,
+    current_user: dict = Depends(get_current_user),
+    user_service: Annotated[UserService, Depends(get_user_service)] = None
+):
+    """Update current user's FCM token for push notifications"""
+    user_id = uuid.UUID(current_user['user_id'])
+    
+    try:
+        print(f"DEBUG: Updating FCM token for user {user_id}")
+        print(f"DEBUG: FCM token (first 20 chars): {fcm_data.fcm_token[:20]}...")
+        
+        user_service.update_fcm_token(user_id, fcm_data.fcm_token)
+        
+        print(f"DEBUG: FCM token updated successfully")
+        
+        return UpdateFcmTokenResponseDto(
+            status="success",
+            message="FCM token updated successfully"
+        )
+    except Exception as e:
+        print(f"ERROR updating FCM token: {str(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to update FCM token: {str(e)}")

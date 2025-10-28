@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,23 +15,35 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.compose.runtime.SideEffect
 import androidx.navigation.compose.rememberNavController
+import com.example.harbit.fcm.FCMTokenManager
 import com.example.harbit.service.SensorDataService
 import com.example.harbit.ui.navigation.AppNavigation
 import com.example.harbit.ui.theme.HARbitTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var fcmTokenManager: FCMTokenManager
+    
+    companion object {
+        private const val TAG = "MainActivity"
+    }
     
     // Permission launcher for POST_NOTIFICATIONS
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            // Permission granted, start service
+            Log.d(TAG, "Notification permission granted")
+            // Permission granted, start service and get FCM token
             startSensorDataService()
+            fcmTokenManager.refreshToken()
         } else {
+            Log.w(TAG, "Notification permission denied")
             // Permission denied - service can still start but notification won't show
             startSensorDataService()
         }
@@ -68,6 +81,7 @@ class MainActivity : ComponentActivity() {
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     // Permission already granted
                     startSensorDataService()
+                    fcmTokenManager.refreshToken()
                 }
                 else -> {
                     // Request permission
@@ -77,6 +91,7 @@ class MainActivity : ComponentActivity() {
         } else {
             // Below Android 13, no runtime permission needed
             startSensorDataService()
+            fcmTokenManager.refreshToken()
         }
     }
     

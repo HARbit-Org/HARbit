@@ -1,6 +1,7 @@
 from repository.userRepository import UserRepository
 from model.dto.request.updateProfileDto import UpdateProfileDto
 from model.entity.users import Users
+from datetime import datetime, timezone
 import uuid
 
 
@@ -44,3 +45,20 @@ class UserService:
             self.user_repo.db.refresh(user)
         
         return updated_user if updated_user else user
+    
+    def update_fcm_token(self, user_id: uuid.UUID, fcm_token: str) -> Users:
+        """Update user's FCM token for push notifications"""
+        user = self.user_repo.find_by_id(user_id)
+        
+        if not user:
+            raise ValueError(f"User with ID {user_id} not found")
+        
+        # Update FCM token and timestamp
+        user.fcm_token = fcm_token
+        user.fcm_updated_at = datetime.now(timezone.utc)
+        
+        # Commit changes
+        self.user_repo.db.commit()
+        self.user_repo.db.refresh(user)
+        
+        return user

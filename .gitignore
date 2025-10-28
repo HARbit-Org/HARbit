@@ -16,3 +16,7 @@ local.properties
 /backend/harbit-backend-env
 backend/.env.example
 backend/migrations
+AUTO_LOGIN_IMPLEMENTATION.md
+FCM_IMPLEMENTATION_SUMMARY.md
+FCM_SETUP.md
+HILT_MIGRATION_COMPLETE.md
