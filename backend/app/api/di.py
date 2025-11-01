@@ -9,9 +9,11 @@ from service.rawSensorService import RawSensorService
 from repository.userRepository import UserRepository
 from repository.sessionRepository import SessionRepository
 from repository.activityRepository import ActivityRepository
+from repository.notificationRepository import NotificationRepository
 from service.authService import AuthService
 from service.userService import UserService
 from service.activityService import ActivityService
+from service.notificationService import NotificationService
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -58,3 +60,12 @@ def get_activity_service(
     activity_repo: Annotated[ActivityRepository, Depends(get_activity_repository)]
 ) -> ActivityService:
     return ActivityService(activity_repo)
+
+def get_notification_repository(db: Annotated[Session, Depends(get_db)]) -> NotificationRepository:
+    return NotificationRepository(db)
+
+def get_notification_service(
+    notification_repo: Annotated[NotificationRepository, Depends(get_notification_repository)],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)]
+) -> NotificationService:
+    return NotificationService(notification_repo, user_repo)
