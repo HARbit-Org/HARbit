@@ -106,22 +106,40 @@ class NotificationService:
         last_notification = self.notification_repo.get_last_notification_by_type(
             user_id=user_id,
             notification_type=self.TYPE_SEDENTARY_ALERT,
-            hours_ago=int(self.SEDENTARY_COOLDOWN_MINUTES / 60)  # Convert minutes to hours for repository query
+            minutes_ago=self.SEDENTARY_COOLDOWN_MINUTES
         )
         
         if last_notification:
             # Check if cooldown period (in minutes) has passed
-            time_since_last = datetime.now(timezone.utc) - last_notification.ts.replace(tzinfo=timezone.utc)
+            # Note: last_notification.ts already has timezone info from PostgreSQL
+            now_utc = datetime.now(timezone.utc)
+            last_ts = last_notification.ts
+            
+            # Ensure last_ts has timezone info (it should from PostgreSQL)
+            if last_ts.tzinfo is None:
+                # If somehow it doesn't, assume it's UTC
+                last_ts = last_ts.replace(tzinfo=timezone.utc)
+            
+            time_since_last = now_utc - last_ts
             minutes_since_last = time_since_last.total_seconds() / 60
             
+            print(f"🕐 Cooldown check for user {user_id}:")
+            print(f"   Now (UTC): {now_utc.isoformat()}")
+            print(f"   Last notification: {last_ts.isoformat()}")
+            print(f"   Minutes since last: {minutes_since_last:.2f}")
+            print(f"   Cooldown period: {self.SEDENTARY_COOLDOWN_MINUTES} minutes")
+            
             if minutes_since_last < self.SEDENTARY_COOLDOWN_MINUTES:
+                print(f"   ❌ COOLDOWN ACTIVE - Blocking notification")
                 return {
                     'notification_sent': False,
                     'reason': 'cooldown_active',
-                    'last_notification_at': last_notification.ts.isoformat(),
+                    'last_notification_at': last_ts.isoformat(),
                     'minutes_since_last': round(minutes_since_last, 1),
                     'cooldown_minutes': self.SEDENTARY_COOLDOWN_MINUTES
                 }
+            else:
+                print(f"   ✅ COOLDOWN EXPIRED - Allowing notification")
         
         # Create notification payload
         notification_payload = {

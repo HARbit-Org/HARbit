@@ -227,5 +227,5 @@ val walkColor = Color(0xFFD9E2FF)
 val exerciseColor = Color(0xFF006972)
 val otherColor = Color(0xFF515E7D)
 
-val writeColor = Color(0xFFBA521A)
+val writeColor = Color(0xFFFF9800)
 

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.harbit.ui.components.Header
 
 
 @Composable
@@ -24,48 +25,19 @@ fun ProgressScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 0.dp)
             .verticalScroll(rememberScrollState())
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Header
-        ProgressHeader()
-        
-        // Achievement Cards
-        AchievementSection()
-        
-        // Improvement Suggestions
-        ImprovementSection()
+        Header(
+            title = "Mi Progreso",
+            subtitle = "HARbit analiza tu actividad y te muestra cómo vas avanzando semana a semana"
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
         
         Spacer(modifier = Modifier.height(100.dp)) // Space for bottom navigation
-    }
-}
-
-@Composable
-private fun ProgressHeader() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Mi Progreso",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Text(
-                text = "HARbit analiza tu actividad y te muestra cómo vas avanzando semana a semana.",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 18.sp
-            )
-        }
     }
 }
 
@@ -103,30 +75,6 @@ private fun AchievementSection() {
                 isPositive = true
             )
         }
-    }
-}
-
-@Composable
-private fun ImprovementSection() {
-    Column(
-        modifier = Modifier.padding(16.dp)
-    ) {
-        Text(
-            text = "Aspectos de mejora",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        
-        AchievementCard(
-            icon = Icons.Default.AccessTime,
-            title = "Aumenta tu tiempo sentado",
-            description = "+18% vs semana pasada",
-            date = "04/08/2025",
-            color = MaterialTheme.colorScheme.error,
-            isPositive = false
-        )
     }
 }
 
