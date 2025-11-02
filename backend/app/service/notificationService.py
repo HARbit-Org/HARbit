@@ -177,7 +177,7 @@ class NotificationService:
             # Get user's FCM token
             user = self.user_repo.find_by_id(user_id)
             if not user or not user.fcm_token:
-                print(f"No FCM token for user {user_id}")
+                print(f"ℹ️  No FCM token for user {user_id} - notification skipped")
                 return False
             
             # Initialize Firebase if not already done
@@ -220,8 +220,23 @@ class NotificationService:
             
             return True
             
+        except messaging.UnregisteredError:
+            # Token is invalid/unregistered - app was uninstalled
+            print(f"⚠️  FCM token invalid for user {user_id} (app may be uninstalled) - notification skipped")
+            return False
+        except messaging.SenderIdMismatchError:
+            # Token doesn't match sender ID
+            print(f"⚠️  FCM token mismatch for user {user_id} - notification skipped")
+            return False
         except Exception as e:
-            print(f"❌ Error sending sedentary notification to user {user_id}: {e}")
+            # Other errors (network, etc.)
+            error_msg = str(e)
+            if "not a valid FCM registration token" in error_msg:
+                print(f"⚠️  Invalid FCM token for user {user_id} - notification skipped")
+            elif "Requested entity was not found" in error_msg:
+                print(f"⚠️  FCM token not found for user {user_id} - notification skipped")
+            else:
+                print(f"❌ Unexpected error sending notification to user {user_id}: {e}")
             return False
 
     def send_progress_notification(
@@ -293,7 +308,7 @@ class NotificationService:
             # Get user's FCM token
             user = self.user_repo.find_by_id(user_id)
             if not user or not user.fcm_token:
-                print(f"No FCM token for user {user_id}")
+                print(f"ℹ️  No FCM token for user {user_id} - notification skipped")
                 return False
             
             # Initialize Firebase if not already done
@@ -333,6 +348,21 @@ class NotificationService:
             
             return True
             
+        except messaging.UnregisteredError:
+            # Token is invalid/unregistered - app was uninstalled
+            print(f"⚠️  FCM token invalid for user {user_id} (app may be uninstalled) - notification skipped")
+            return False
+        except messaging.SenderIdMismatchError:
+            # Token doesn't match sender ID
+            print(f"⚠️  FCM token mismatch for user {user_id} - notification skipped")
+            return False
         except Exception as e:
-            print(f"❌ Error sending progress notification to user {user_id}: {e}")
+            # Other errors (network, etc.)
+            error_msg = str(e)
+            if "not a valid FCM registration token" in error_msg:
+                print(f"⚠️  Invalid FCM token for user {user_id} - notification skipped")
+            elif "Requested entity was not found" in error_msg:
+                print(f"⚠️  FCM token not found for user {user_id} - notification skipped")
+            else:
+                print(f"❌ Unexpected error sending notification to user {user_id}: {e}")
             return False
