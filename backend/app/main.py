@@ -21,7 +21,7 @@ app.include_router(jobRouter)
 crons = Crons()
 
 # Register weekly progress job - Every Sunday at 8:00 PM (20:00 UTC)
-@crons.cron("35 21 * * *")
+@crons.cron("0 20 * * 0")
 async def run_weekly_progress():
     """Execute weekly progress calculation for all users."""
     await weekly_progress_cron()
