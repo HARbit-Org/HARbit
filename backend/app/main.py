@@ -3,6 +3,7 @@ from api.v1.rawSensorController import router as rawSensorRouter
 from api.v1.authController import router as authRouter
 from api.v1.userController import router as userRouter
 from api.v1.activityController import router as activityRouter
+from api.v1.jobController import router as jobRouter
 
 # Import all models to register them with SQLAlchemy
 from model.entity import users, rawSensorRecords, userProviders, processedActivities, notifications, progressInsights, dailySteps, heartRateReadings
@@ -12,3 +13,4 @@ app.include_router(rawSensorRouter)
 app.include_router(authRouter)
 app.include_router(userRouter)
 app.include_router(activityRouter)
+app.include_router(jobRouter)

@@ -23,7 +23,6 @@ class NotificationService:
     # Notification types
     TYPE_SEDENTARY_ALERT = "sedentary_alert"
     TYPE_PROGRESS = "progress"
-    TYPE_IMPROVEMENT = "improvement_opportunity"
     
     # Cooldown configuration
     SEDENTARY_COOLDOWN_MINUTES = 30  # Don't send same alert within 30 minutes
@@ -229,63 +228,111 @@ class NotificationService:
         self,
         user_id: uuid.UUID,
         progress_data: Dict[str, Any]
-    ) -> Optional[int]:
+    ) -> Optional[Dict[str, Any]]:
         """
         Send a progress notification to the user.
         
         Args:
             user_id: UUID of the user
-            progress_data: Dict with progress information
+            progress_data: Dict with progress information from ProgressInsights
+                Should contain: message_title, message_body, type, delta_value, delta_pct
             
         Returns:
-            Notification ID if created, None otherwise
+            Dict with notification result
         """
-        # TODO: Implement progress notification logic
+        # Create notification payload
+        notification_payload = {
+            'type': progress_data.get('type', self.TYPE_PROGRESS),
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Create notification record
         notification = self.notification_repo.create_notification(
             user_id=user_id,
             notification_type=self.TYPE_PROGRESS,
-            payload=progress_data
+            payload=notification_payload
         )
         
-        return notification.id
+        # Send push notification
+        push_sent = self._send_progress_push(
+            user_id=user_id,
+            title=progress_data.get('message_title', 'Progreso Semanal'),
+            body=progress_data.get('message_body', ''),
+            notification_id=notification.id,
+            insight_type=progress_data.get('type', self.TYPE_PROGRESS)
+        )
+        
+        return {
+            'notification_sent': True,
+            'notification_id': notification.id,
+            'push_sent': push_sent
+        }
 
-    def send_improvement_notification(
+    def _send_progress_push(
         self,
         user_id: uuid.UUID,
-        improvement_data: Dict[str, Any]
-    ) -> Optional[int]:
+        title: str,
+        body: str,
+        notification_id: int,
+        insight_type: str
+    ) -> bool:
         """
-        Send an improvement opportunity notification to the user.
+        Send push notification via FCM for progress/improvement.
         
         Args:
             user_id: UUID of the user
-            improvement_data: Dict with improvement opportunity information
+            title: Notification title
+            body: Notification body
+            notification_id: ID of the notification record
+            insight_type: Type of insight (progress, improvement_opportunity, other)
             
         Returns:
-            Notification ID if created, None otherwise
+            True if notification was sent successfully, False otherwise
         """
-        # TODO: Implement improvement opportunity notification logic
-        notification = self.notification_repo.create_notification(
-            user_id=user_id,
-            notification_type=self.TYPE_IMPROVEMENT,
-            payload=improvement_data
-        )
-        
-        return notification.id
+        try:
+            # Get user's FCM token
+            user = self.user_repo.find_by_id(user_id)
+            if not user or not user.fcm_token:
+                print(f"No FCM token for user {user_id}")
+                return False
+            
+            # Initialize Firebase if not already done
+            self._initialize_firebase()
+            
+            # Determine icon color based on insight type
+            icon_color = '#006A74'  # Teal for progress, Orange for improvement
 
-    def get_user_notifications(
-        self,
-        user_id: uuid.UUID,
-        limit: int = 50,
-        offset: int = 0
-    ):
-        """Get all notifications for a user"""
-        return self.notification_repo.get_user_notifications(
-            user_id=user_id,
-            limit=limit,
-            offset=offset
-        )
-
-    def mark_notification_as_read(self, notification_id: int):
-        """Mark a notification as read"""
-        return self.notification_repo.mark_as_read(notification_id)
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                ),
+                data={
+                    'type': self.TYPE_PROGRESS,
+                    'notification_id': str(notification_id),
+                    'insight_type': insight_type,
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                },
+                token=user.fcm_token,
+                android=messaging.AndroidConfig(
+                    priority='high',
+                    notification=messaging.AndroidNotification(
+                        icon='ic_notification',
+                        color=icon_color,
+                        channel_id='progress_insights'
+                    )
+                )
+            )
+            
+            # Send the message
+            response = messaging.send(message)
+            print(f"✅ Progress notification sent to user {user_id}: {response}")
+            
+            # Mark as delivered
+            self.notification_repo.mark_as_delivered(notification_id)
+            
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error sending progress notification to user {user_id}: {e}")
+            return False

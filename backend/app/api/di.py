@@ -10,10 +10,12 @@ from repository.userRepository import UserRepository
 from repository.sessionRepository import SessionRepository
 from repository.activityRepository import ActivityRepository
 from repository.notificationRepository import NotificationRepository
+from repository.progressInsightsRepository import ProgressInsightsRepository
 from service.authService import AuthService
 from service.userService import UserService
 from service.activityService import ActivityService
 from service.notificationService import NotificationService
+from service.progressService import ProgressService
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -69,3 +71,14 @@ def get_notification_service(
     user_repo: Annotated[UserRepository, Depends(get_user_repository)]
 ) -> NotificationService:
     return NotificationService(notification_repo, user_repo)
+
+def get_progress_insights_repository(db: Annotated[Session, Depends(get_db)]) -> ProgressInsightsRepository:
+    return ProgressInsightsRepository(db)
+
+def get_progress_service(
+    progress_insights_repo: Annotated[ProgressInsightsRepository, Depends(get_progress_insights_repository)],
+    activity_repo: Annotated[ActivityRepository, Depends(get_activity_repository)],
+    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+    notification_service: Annotated[NotificationService, Depends(get_notification_service)]
+) -> ProgressService:
+    return ProgressService(progress_insights_repo, activity_repo, user_repo, notification_service)
