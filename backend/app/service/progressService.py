@@ -94,7 +94,7 @@ class ProgressService:
         """
         Calculate weekly progress for a specific user.
         
-        Compares current week (Mon-Sun) vs previous week.
+        Compares current week (last 7 days including today) vs previous week (7 days before that).
         Generates progress insight based on activity improvement.
         
         Args:
@@ -106,15 +106,27 @@ class ProgressService:
         # Define time ranges (current week and previous week)
         now = datetime.now(timezone.utc)
         
-        # Current week: Monday to Sunday
-        current_week_start = (now - timedelta(days=now.weekday())).replace(
+        # Current week: Last 7 days including today
+        # End: End of today (23:59:59)
+        current_week_end = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        # Start: 7 days ago at 00:00:00
+        current_week_start = (now - timedelta(days=6)).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
-        current_week_end = current_week_start + timedelta(days=7)
         
-        # Previous week
-        previous_week_start = current_week_start - timedelta(days=7)
-        previous_week_end = current_week_start
+        # Previous week: 7 days before current week
+        # End: Day before current week start (23:59:59)
+        previous_week_end = current_week_start - timedelta(microseconds=1)
+        # Start: 7 days before that
+        previous_week_start = (previous_week_end - timedelta(days=6)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        
+        print(f"📅 Week Comparison for user {user_id}:")
+        print(f"   Now (UTC): {now.isoformat()}")
+        print(f"   Day of week: {now.strftime('%A')}")
+        print(f"   Current week (last 7 days): {current_week_start.isoformat()} → {current_week_end.isoformat()}")
+        print(f"   Previous week (7 days before): {previous_week_start.isoformat()} → {previous_week_end.isoformat()}")
         
         # Get activity distribution for both weeks
         current_distribution = self.activity_repo.get_activity_distribution(
@@ -129,16 +141,42 @@ class ProgressService:
             end_time=previous_week_end
         )
         
+        print(f"📊 Current week distribution ({len(current_distribution)} activities):")
+        for activity in current_distribution:
+            print(f"   - {activity['activity_label']}: {activity['total_minutes']:.2f} min")
+        
+        print(f"📊 Previous week distribution ({len(previous_distribution)} activities):")
+        for activity in previous_distribution:
+            print(f"   - {activity['activity_label']}: {activity['total_minutes']:.2f} min")
+        
         # Calculate metrics
         current_metrics = self._calculate_activity_metrics(current_distribution)
         previous_metrics = self._calculate_activity_metrics(previous_distribution)
+        
+        print(f"📈 Current week metrics:")
+        print(f"   Active: {current_metrics['active_minutes']:.2f} min")
+        print(f"   Sedentary: {current_metrics['sedentary_minutes']:.2f} min")
+        print(f"   Other: {current_metrics['other_minutes']:.2f} min")
+        print(f"   Total: {current_metrics['total_minutes']:.2f} min")
+        
+        print(f"📉 Previous week metrics:")
+        print(f"   Active: {previous_metrics['active_minutes']:.2f} min")
+        print(f"   Sedentary: {previous_metrics['sedentary_minutes']:.2f} min")
+        print(f"   Other: {previous_metrics['other_minutes']:.2f} min")
+        print(f"   Total: {previous_metrics['total_minutes']:.2f} min")
         
         # Determine insight type and message
         insight_data_list = self._determine_insight_type(
             current_metrics=current_metrics,
             previous_metrics=previous_metrics,
-            user_id=user_id
         )
+        
+        print(f"💡 Generated {len(insight_data_list) if insight_data_list else 0} insights:")
+        if insight_data_list:
+            for idx, insight in enumerate(insight_data_list):
+                print(f"   {idx+1}. Type: {insight['type']}, Category: {insight['category']}")
+                print(f"      Title: {insight['message_title']}")
+                print(f"      Delta: {insight['delta_value']:.2f} min ({insight['delta_pct']:.2f}%)")
         
         if not insight_data_list or len(insight_data_list) == 0:
             print(f"ℹ️ No insights generated for user {user_id}")
@@ -245,7 +283,6 @@ class ProgressService:
         self,
         current_metrics: Dict[str, float],
         previous_metrics: Dict[str, float],
-        user_id: uuid.UUID
     ) -> List[Dict[str, Any]]:
         """
         Determine insight type based on activity comparison.
