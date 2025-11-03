@@ -47,7 +47,7 @@ class ProgressInsightsRepository:
         
         return insight
 
-    def get_user_insights(
+    def get_insights_by_user(
         self,
         user_id: uuid.UUID,
         period_type: Optional[str] = None,
@@ -55,17 +55,14 @@ class ProgressInsightsRepository:
         offset: int = 0
     ) -> List[ProgressInsights]:
         """Get insights for a user"""
-        query = self.db.query(ProgressInsights).filter(
-            ProgressInsights.user_id == user_id
-        )
-        
-        if period_type:
-            query = query.filter(ProgressInsights.period_type == period_type)
-        
-        query = query.order_by(ProgressInsights.created_at.desc())
-        query = query.offset(offset).limit(limit)
-        
-        return query.all()
+        return (
+        self.db.query(ProgressInsights)
+        .filter(ProgressInsights.user_id == user_id)  # ✅ Asegurar que filtre correctamente
+        .order_by(ProgressInsights.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
 
     def get_latest_insight_for_period(
         self,

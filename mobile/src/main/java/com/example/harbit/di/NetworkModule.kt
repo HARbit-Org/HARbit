@@ -4,6 +4,7 @@ import com.example.harbit.data.remote.interceptor.AuthInterceptor
 import com.example.harbit.data.remote.service.ActivityApiService
 import com.example.harbit.data.remote.service.AuthApiService
 import com.example.harbit.data.remote.service.BackendApiService
+import com.example.harbit.data.remote.service.ProgressApiService
 import com.example.harbit.data.remote.service.UserApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -131,5 +132,13 @@ object NetworkModule {
         @javax.inject.Named("ApiRetrofit") retrofit: Retrofit
     ): ActivityApiService {
         return retrofit.create(ActivityApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProgressApiService(
+        @javax.inject.Named("ApiRetrofit") retrofit: Retrofit
+    ): ProgressApiService {
+        return retrofit.create(ProgressApiService::class.java)
     }
 }

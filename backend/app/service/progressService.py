@@ -6,6 +6,7 @@ from repository.activityRepository import ActivityRepository
 from repository.userRepository import UserRepository
 from model.entity.users import Users
 from service.notificationService import NotificationService
+from model.dto.progressInsightDto import ProgressInsightDto
 
 
 class ProgressService:
@@ -175,6 +176,36 @@ class ProgressService:
         
         print(f"✅ Created {len(insights)} insight(s) for user {user_id}")
         return insights
+    
+    def getProgressInsightsForUser(self, user_id: uuid.UUID) -> List[Any]:
+        """
+        Retrieve all progress insights for a specific user.
+        
+        Args:
+            user_id: UUID of the user
+        Returns:
+            List of ProgressInsight DTOs
+        """
+
+        insights_data = self.progress_insights_repo.get_insights_by_user(user_id=user_id)
+        
+        result = []
+        
+        for insight in insights_data:
+            result.append(
+                ProgressInsightDto(
+                    id = str(insight.id),
+                    userId = str(insight.user_id),
+                    type = insight.type,
+                    category = insight.category,
+                    message_title = insight.message_title,
+                    message_body = insight.message_body,
+                    created_at = insight.created_at.isoformat()
+                )
+            )
+        
+        return result
+
 
     def _calculate_activity_metrics(self, distribution: List[dict]) -> Dict[str, float]:
         """

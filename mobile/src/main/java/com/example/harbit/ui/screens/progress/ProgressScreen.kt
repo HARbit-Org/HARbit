@@ -10,18 +10,31 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.harbit.ui.components.Header
 
 
 @Composable
-fun ProgressScreen() {
+fun ProgressScreen(
+    viewModel: ProgressInsightsViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadProgressInsights()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -36,144 +49,84 @@ fun ProgressScreen() {
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        
+        when (state) {
+            is ProgressInsightsState.Loading -> {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+            is ProgressInsightsState.Success -> {
+                val successState = state as ProgressInsightsState.Success
+
+                successState.insights.forEach { insightDto ->
+                    ActivityListItem(
+                        body = insightDto.body,
+                    )
+                }
+            }
+            is ProgressInsightsState.Error -> {
+                Text(
+                    text = "Todavía no tenemos información sobre tu progreso. ¡Sigue utilizando HARbit para mejorar tu bienestar!",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            is ProgressInsightsState.Empty -> {
+                Text(
+                    text = "Todavía no tenemos información sobre tu progreso. ¡Sigue utilizando HARbit para mejorar tu bienestar!",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(100.dp)) // Space for bottom navigation
     }
 }
 
 @Composable
-private fun AchievementSection() {
-    Column(
-        modifier = Modifier.padding(horizontal = 16.dp)
-    ) {
-        Text(
-            text = "Logros",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-        
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            AchievementCard(
-                icon = Icons.Default.TrendingDown,
-                title = "¡Lograste reducir tu sedentarismo!",
-                description = "Redujiste 15% tu tiempo sentado respecto a la semana pasada.",
-                date = "12/08/2025",
-                color = MaterialTheme.colorScheme.primary,
-                isPositive = true
-            )
-            
-            AchievementCard(
-                icon = Icons.Default.DirectionsWalk,
-                title = "¡Superaste tu promedio de pasos!",
-                description = "Promediaste 11,200 pasos por día esta semana, 32% más que la anterior. Mantener este hábito mejora tu resistencia y energía.",
-                date = "05/08/2025",
-                color = MaterialTheme.colorScheme.primary,
-                isPositive = true
-            )
-        }
-    }
-}
-
-@Composable
-private fun AchievementCard(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    date: String,
-    color: Color,
-    isPositive: Boolean
+private fun ActivityListItem(
+    body: String,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (isPositive) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
-            } else {
-                MaterialTheme.colorScheme.error.copy(alpha = 0.05f)
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                // Icon with background
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color.copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = color,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                
                 Spacer(modifier = Modifier.width(12.dp))
-                
-                Column {
-                    Text(
-                        text = title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 18.sp
-                    )
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    Text(
-                        text = description,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 16.sp
-                    )
-                }
-            }
-            
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
                 Text(
-                    text = date,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = body,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                if (isPositive) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Logro completado",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Aspecto a mejorar",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
             }
         }
     }
