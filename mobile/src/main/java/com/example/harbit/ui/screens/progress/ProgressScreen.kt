@@ -43,16 +43,19 @@ fun ProgressScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 0.dp)
             .verticalScroll(rememberScrollState())
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        Header(
-            title = "Mi Progreso",
-            subtitle = "HARbit analiza tu actividad y te muestra cómo vas avanzando semana a semana"
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 0.dp)
+        ) {
+            Header(
+                title = "Mi Progreso",
+                subtitle = "HARbit analiza tu actividad y te muestra cómo vas avanzando semana a semana"
+            )
+        }
 
         when (state) {
             is ProgressInsightsState.Loading -> {
