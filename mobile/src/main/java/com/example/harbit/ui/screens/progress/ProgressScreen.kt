@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -22,7 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.harbit.data.remote.dto.ProgressInsightDto
 import com.example.harbit.ui.components.Header
+import com.example.harbit.ui.theme.writeColor
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -69,8 +74,8 @@ fun ProgressScreen(
                 val successState = state as ProgressInsightsState.Success
 
                 successState.insights.forEach { insightDto ->
-                    ActivityListItem(
-                        body = insightDto.body,
+                    ProgressListItem(
+                        insight = insightDto,
                     )
                 }
             }
@@ -99,35 +104,70 @@ fun ProgressScreen(
 }
 
 @Composable
-private fun ActivityListItem(
-    body: String,
+private fun ProgressListItem(
+    insight: ProgressInsightDto,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-            ) {
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = body,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+    val icon: ImageVector
+    val color: Color
+    val overlineText: String
+
+    val formattedDate = try {
+        val dateTime = LocalDateTime.parse(insight.createdAtStr, DateTimeFormatter.ISO_DATE_TIME)
+        dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    } catch (e: Exception) {
+        insight.createdAtStr // Fallback al formato original si hay error
+    }
+
+    when (insight.type) {
+        "progress" -> {
+            icon = Icons.Default.FavoriteBorder
+            color = MaterialTheme.colorScheme.primary
+            overlineText = "Progreso"
+        }
+        "improvement_opportunity" -> {
+            icon = Icons.Default.HeartBroken
+            color = MaterialTheme.colorScheme.error
+            overlineText = "Aspecto de mejora"
+        }
+        else -> {
+            icon = Icons.Default.Error
+            color = writeColor
+            overlineText = "Informativo"
         }
     }
+
+
+    ListItem(
+        headlineContent = {
+            Text(
+                text = insight.title
+            )
+        },
+        supportingContent = {
+            Text(
+                text = insight.body
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color
+            )
+        },
+        overlineContent = {
+            Text(
+                text = overlineText,
+                color = color,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        trailingContent = {
+            Text(
+                text = formattedDate
+            )
+        }
+    )
+    HorizontalDivider()
 }
