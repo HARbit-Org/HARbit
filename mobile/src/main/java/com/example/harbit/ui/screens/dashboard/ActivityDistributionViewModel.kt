@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.harbit.data.local.dao.ActivityDistribution
 import com.example.harbit.data.repository.ActivityRepository
+import com.example.harbit.domain.Alert
 import com.example.harbit.domain.events.SensorDataEvents
 import com.example.harbit.service.WatchConnectionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,13 +18,21 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 sealed class ActivityDistributionState {
-    data object Loading : ActivityDistributionState()
+    data class Loading(
+        val alerts: List<Alert>
+    ) : ActivityDistributionState()
     data class Success(
         val activities: List<ActivityDistribution>,
-        val totalHours: Double
+        val totalHours: Double,
+        val alerts: List<Alert>
     ) : ActivityDistributionState()
-    data class Error(val message: String) : ActivityDistributionState()
-    data object Empty : ActivityDistributionState()
+    data class Error(
+        val message: String,
+        val alerts: List<Alert>
+    ) : ActivityDistributionState()
+    data class Empty(
+        val alerts: List<Alert>
+    ) : ActivityDistributionState()
 }
 
 @HiltViewModel
@@ -33,7 +42,9 @@ class ActivityDistributionViewModel @Inject constructor(
     private val watchConnectionManager: WatchConnectionManager
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<ActivityDistributionState>(ActivityDistributionState.Loading)
+    private val _state = MutableStateFlow<ActivityDistributionState>(ActivityDistributionState.Loading(
+        alerts = AlertGenerator.getMotivationalAlerts(3)
+    ))
     val state: StateFlow<ActivityDistributionState> = _state.asStateFlow()
 
     private val _selectedDateRange = MutableStateFlow<Pair<LocalDate, LocalDate>>(
@@ -98,7 +109,9 @@ class ActivityDistributionViewModel @Inject constructor(
      */
     fun loadActivityDistribution(dateStart: LocalDate = LocalDate.now(), dateEnd: LocalDate = LocalDate.now()) {
         _selectedDateRange.value = Pair(dateStart, dateEnd)
-        _state.value = ActivityDistributionState.Loading
+        _state.value = ActivityDistributionState.Loading(
+            alerts = AlertGenerator.getMotivationalAlerts(3)
+        )
 
         viewModelScope.launch {
             try {
@@ -113,7 +126,8 @@ class ActivityDistributionViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _state.value = ActivityDistributionState.Error(
-                    e.message ?: "An unexpected error occurred"
+                    e.message ?: "An unexpected error occurred",
+                    alerts = AlertGenerator.getMotivationalAlerts(3)
                 )
             }
         }
@@ -146,18 +160,25 @@ class ActivityDistributionViewModel @Inject constructor(
         result.fold(
             onSuccess = { activities ->
                 if (activities.isEmpty()) {
-                    _state.value = ActivityDistributionState.Empty
+                    _state.value = ActivityDistributionState.Empty(
+                        alerts = AlertGenerator.getMotivationalAlerts(3)
+                    )
                 } else {
                     val totalHours = activities.sumOf { it.totalHours }
                     _state.value = ActivityDistributionState.Success(
                         activities = activities,
-                        totalHours = totalHours
+                        totalHours = totalHours,
+                        alerts = AlertGenerator.generateAlerts(
+                            activities,
+                            totalHours
+                        )
                     )
                 }
             },
             onFailure = { error ->
                 _state.value = ActivityDistributionState.Error(
-                    error.message ?: "Failed to load activity distribution"
+                    error.message ?: "Failed to load activity distribution",
+                    alerts = AlertGenerator.getMotivationalAlerts(3)
                 )
             }
         )

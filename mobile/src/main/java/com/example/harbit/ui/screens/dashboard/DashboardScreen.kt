@@ -38,6 +38,8 @@ import androidx.compose.material.icons.outlined.WatchOff
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
+import com.example.harbit.data.local.dao.ActivityDistribution
+import com.example.harbit.domain.Alert
 import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.components.AlertCard
 import java.time.LocalDate
@@ -55,6 +57,7 @@ fun DashboardScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isWatchConnected by viewModel.isWatchConnected.collectAsStateWithLifecycle()
+    var alerts: List<Alert> = emptyList()
     
     // Load today's activity distribution on first composition AND when returning to screen
     LaunchedEffect(Unit) {
@@ -127,6 +130,7 @@ fun DashboardScreen(
 //                        CircularProgressIndicator()
 //                    }
 //                }
+                alerts = (state as ActivityDistributionState.Loading).alerts
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -186,6 +190,7 @@ fun DashboardScreen(
                 }
             }
             is ActivityDistributionState.Success -> {
+                alerts = (state as ActivityDistributionState.Success).alerts
                 ActivityDistributionCard(
                     activities = (state as ActivityDistributionState.Success).activities,
                     totalHours = (state as ActivityDistributionState.Success).totalHours,
@@ -211,6 +216,7 @@ fun DashboardScreen(
 //                        )
 //                    }
 //                }
+                alerts = (state as ActivityDistributionState.Error).alerts
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,6 +276,7 @@ fun DashboardScreen(
                 }
             }
             is ActivityDistributionState.Empty -> {
+                alerts = (state as ActivityDistributionState.Empty).alerts
                 // Show empty chart with 0.0 hours in gray
                 Column(
                     modifier = Modifier
@@ -333,49 +340,10 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        AlertCard(
-            message = "Has estado inactivo por más de 60 min, intenta una pausa activa"
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        // Health Metrics Row
-//        Row(
-//            modifier = Modifier
-//                .fillMaxSize(),
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxSize(0.5f),
-//                horizontalArrangement = Arrangement
-//                    .spacedBy(12.dp),
-//            ) {
-//                StepsCard(
-//                    modifier = Modifier.weight(1f),
-//                    onClick = onStepsClick
-//                )
-//
-////            HeartRateCard(
-////                modifier = Modifier.weight(1f),
-////                onClick = onHeartRateClick
-////            )
-//            }
-//        }
-
-//        Spacer(modifier = Modifier.height(18.dp))
-
-        AlertCard(
-            message = "Construye tu bienestar paso a paso"
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        AlertCard(
-            message = "Una vida en movimiento es una vida saludable."
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
+        alerts.forEach { alert ->
+            AlertCard(message = alert.message)
+            Spacer(modifier = Modifier.height(18.dp))
+        }
     }
 }
 
