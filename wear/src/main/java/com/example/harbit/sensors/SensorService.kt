@@ -176,6 +176,9 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
     override fun onSensorChanged(e: SensorEvent) {
         // Use the sensor event's timestamp directly (no quantization/alignment)
         val timestamp = e.timestamp
+        // val nowEpochMs = System.currentTimeMillis()
+        // val nowElapsedNs = SystemClock.elapsedRealtimeNanos()
+        // val epochMs = nowEpochMs - (nowElapsedNs - timestamp) / 1_000_000L
         
         // Check if we have enough space in buffer
         if (batchBuf.remaining() < BYTES_PER_SAMPLE) {
@@ -196,6 +199,7 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
         
         // Pack: [long timestamp][byte sensorType][float x][float y][float z]
         batchBuf.putLong(timestamp)
+        // batchBuf.putLong(epochMs)
         batchBuf.put(sensorType)
         batchBuf.putFloat(e.values[0])
         batchBuf.putFloat(e.values[1])
