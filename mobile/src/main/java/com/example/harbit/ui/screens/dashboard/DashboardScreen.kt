@@ -196,6 +196,8 @@ fun DashboardScreen(
                     totalHours = (state as ActivityDistributionState.Success).totalHours,
                     onCardClick = onActivityDetailClick
                 )
+
+
             }
             is ActivityDistributionState.Error -> {
 //                Card(
@@ -338,7 +340,7 @@ fun DashboardScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         alerts.forEach { alert ->
             AlertCard(message = alert.message)
