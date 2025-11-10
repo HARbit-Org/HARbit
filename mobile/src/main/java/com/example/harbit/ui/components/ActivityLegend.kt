@@ -92,38 +92,61 @@ fun ActivityLegend(activities: List<ActivityDistribution>) {
             }
         }
 
-        FlowRow (
+        Column(
             modifier = Modifier
                 .background(
                     MaterialTheme.colorScheme.secondaryContainer,
                     RoundedCornerShape(8.dp)
                 )
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            maxItemsInEachRow = 2
+                .padding(2.dp)
+                .fillMaxWidth()
         ) {
-            Text(
-                text = "Sedentario ($sedentaryPctFormatted)",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                // ✅ Info popup positioned in top right corner
+                InfoPopup(
+                    infoText = """
+                    • Sedentario: Actividades como sentarse, escribir, comer y escribir en un teclado
+                    
+                    • Activo: Caminar y ejercicios (fútbol, básquet, entre otros)
+                    
+                    • Otros: Actividades que no se clasifican en las categorías anteriores
+                """.trimIndent(),
+                    title = "Categorías de Actividad"
+                )
+            }
 
-            Text(
-                text = "Activo ($activePctFormatted)",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            FlowRow (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 0.dp, start = 14.dp, end = 14.dp, bottom = 14.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                maxItemsInEachRow = 2
+            ) {
+                Text(
+                    text = "Sedentario ($sedentaryPctFormatted)",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
 
-            Text(
-                text = "Otros ($otherPctFormatted)",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+                Text(
+                    text = "Activo ($activePctFormatted)",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Text(
+                    text = "Otros ($otherPctFormatted)",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
     }
 }
