@@ -8,6 +8,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.PowerManager
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -25,10 +26,10 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
         private const val PING_PATH = "/ping"
         private const val PONG_PATH = "/pong"
         
-        // 20 Hz sampling rate for each sensor
+        // 20 Hz sampling rate - optimized for consistent performance
         private const val SAMPLE_RATE_HZ = 20
         private const val SENSOR_PERIOD_US = (1000000 / SAMPLE_RATE_HZ) // 50,000 us = 20 Hz
-        private const val MAX_LATENCY_US = 1_000_000  // 1 s max latency
+        private const val MAX_LATENCY_US = 100_000  // ✅ 100ms latency (no HIGH_SAMPLING_RATE_SENSORS needed)
 
         // Format: [long timestamp][byte sensorType][float x][float y][float z]
         // sensorType: 1 = accelerometer, 2 = gyroscope
@@ -47,16 +48,34 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
     private val msgClient by lazy { Wearable.getMessageClient(this) }
     private val nodeClient by lazy { Wearable.getNodeClient(this) }
 
+    // ✅ WakeLock to prevent CPU sleep and maintain 20Hz
+    private lateinit var wakeLock: PowerManager.WakeLock
+
 //    private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE * 2) // Twice the size to accommodate both sensors
 
     private var batchBuf: ByteBuffer = ByteBuffer.allocate(BATCH_SAMPLES * BYTES_PER_SAMPLE)
         .order(java.nio.ByteOrder.LITTLE_ENDIAN)
     private var batchCount = 0
+    
+    // ✅ Frequency monitoring
+    private var lastSampleTime = 0L
+    private var sampleCount = 0L
+    private var frequencyCheckTime = System.currentTimeMillis()
 
     override fun onCreate() {
         super.onCreate()
         startForeground(NOTIF_ID, makeNotification())
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        
+        // ✅ Acquire WakeLock to keep CPU active for consistent 20Hz
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "HARbit::SensorCollection"
+        ).apply {
+            acquire()
+            android.util.Log.d("SensorService", "WakeLock acquired - CPU will stay active")
+        }
         
         // Get both accelerometer and gyroscope sensors
         accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -83,28 +102,23 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
                 android.util.Log.d("SensorService", "Connected to ${nodes.size} node(s): ${nodes.joinToString { it.displayName }}")
             }
             
-            // Register both sensors with the same sampling rate
-            var sensorsRegistered = false
-            
-            accel?.let {
-                sensorManager.registerListener(
-                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
-                )
-                sensorsRegistered = true
-            }
-            
-//            gyro?.let {
-//                sensorManager.registerListener(
-//                    this, it, SENSOR_PERIOD_US, MAX_LATENCY_US
-//                )
-//                sensorsRegistered = true
-//            }
-            
-            // Stop service if no sensors could be registered
-            if (!sensorsRegistered) {
-                android.util.Log.e("SensorService", "No sensors could be registered!")
+        // Register accelerometer immediately for consistent sampling
+        accel?.let {
+            val registered = sensorManager.registerListener(
+                this, it, 
+                SENSOR_PERIOD_US, // ✅ 50,000 microseconds = 20Hz
+                100_000 // ✅ 100ms max latency (no HIGH_SAMPLING_RATE_SENSORS needed)
+            )
+            if (registered) {
+                android.util.Log.d("SensorService", "✅ Accelerometer registered at ${SAMPLE_RATE_HZ}Hz with WakeLock")
+            } else {
+                android.util.Log.e("SensorService", "Failed to register accelerometer")
                 stopSelf()
             }
+        } ?: run {
+            android.util.Log.e("SensorService", "No accelerometer available!")
+            stopSelf()
+        }
             
         }.addOnFailureListener { e ->
             android.util.Log.e("SensorService", "Failed to get connected nodes: ${e.message}")
@@ -136,9 +150,27 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
 
     override fun onDestroy() {
         super.onDestroy()
-        sensorManager.unregisterListener(this)
-        msgClient.removeListener(this)
         android.util.Log.d("SensorService", "Service is being destroyed")
+        
+        // ✅ Unregister sensor listener first
+        sensorManager.unregisterListener(this)
+        android.util.Log.d("SensorService", "Sensor listeners unregistered")
+        
+        // ✅ Remove message listener
+        msgClient.removeListener(this)
+        android.util.Log.d("SensorService", "Message listener removed")
+        
+        // ✅ Release WakeLock to save battery
+        if (this::wakeLock.isInitialized && wakeLock.isHeld) {
+            wakeLock.release()
+            android.util.Log.d("SensorService", "WakeLock released")
+        }
+        
+        // ✅ Send any remaining data before shutdown
+        if (batchCount > 0) {
+            android.util.Log.d("SensorService", "Sending final batch with $batchCount samples before shutdown")
+            sendAndReset()
+        }
     }
     
     /**
@@ -174,7 +206,18 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
     }
 
     override fun onSensorChanged(e: SensorEvent) {
-        // Use the sensor event's timestamp directly (no quantization/alignment)
+        // ✅ Monitor actual sampling frequency
+        val currentTime = System.currentTimeMillis()
+        sampleCount++
+        
+        if (currentTime - frequencyCheckTime >= 5000) { // Check every 5 seconds
+            val actualHz = sampleCount * 1000.0 / (currentTime - frequencyCheckTime)
+            android.util.Log.d("SensorService", "📊 Actual sampling rate: ${String.format("%.1f", actualHz)} Hz (target: ${SAMPLE_RATE_HZ} Hz)")
+            sampleCount = 0
+            frequencyCheckTime = currentTime
+        }
+        
+        // Use the sensor event's timestamp directly
         val timestamp = e.timestamp
         // val nowEpochMs = System.currentTimeMillis()
         // val nowElapsedNs = SystemClock.elapsedRealtimeNanos()
@@ -185,22 +228,14 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
             sendAndReset()
         }
         
-        // Determine sensor type (1=accelerometer, 2=gyroscope)
-        val sensorType = when (e.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> 1.toByte()
-            Sensor.TYPE_GYROSCOPE -> 2.toByte()
-            else -> return // Ignore other sensors
+        // Only accelerometer (type 1)
+        if (e.sensor.type != Sensor.TYPE_ACCELEROMETER) {
+            return // Ignore other sensors
         }
-        
-        // Log the data
-        val sensorName = if (sensorType.toInt() == 1) "Accelerometer" else "Gyroscope"
-        android.util.Log.d("SensorService", "$sensorName - timestamp: $timestamp, " +
-                           "x: ${e.values[0]}, y: ${e.values[1]}, z: ${e.values[2]}")
         
         // Pack: [long timestamp][byte sensorType][float x][float y][float z]
         batchBuf.putLong(timestamp)
-        // batchBuf.putLong(epochMs)
-        batchBuf.put(sensorType)
+        batchBuf.put(1.toByte()) // Accelerometer type
         batchBuf.putFloat(e.values[0])
         batchBuf.putFloat(e.values[1])
         batchBuf.putFloat(e.values[2])
