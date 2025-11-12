@@ -15,6 +15,8 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import com.example.harbit.data.local.dao.ActivityDistribution
 import com.example.harbit.domain.Alert
 import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.components.AlertCard
+import com.example.harbit.ui.components.InfoPopup
 import java.time.LocalDate
 
 import kotlin.math.cos
@@ -341,6 +344,24 @@ fun DashboardScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            InfoPopup(
+                infoText = """
+                    • Pausas activas: Se recomiendan las pausas de 5 minutos cada media hora en función de un estudio de Harvard Health, el cual demuestra la reducción de glucosa en sangre y la presión arterial sistólica.
+                    
+                    • Actividad física semanal: La OMS recomienda por lo menos de 150 a 300 minutos por semana (21 a 42 minutos diarios, aproximadamente) de actividad física de intensidad moderada o vigorosa para todos los adultos, con el objetivo de prevenir y ayudar a manejar las cardiopatías, la diabetes de tipo 2 y el cáncer, así como para reducir los síntomas de la depresión y la ansiedad, disminuir el deterioro cognitivo, mejorar la memoria y potenciar la salud cerebral.
+                """.trimIndent(),
+                title = "¿En qué se basan las alertas de HARbit?",
+                icon = Icons.Default.HelpOutline
+            )
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
 
         alerts.forEach { alert ->
             AlertCard(message = alert.message)
