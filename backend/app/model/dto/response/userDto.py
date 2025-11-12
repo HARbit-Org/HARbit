@@ -7,6 +7,10 @@ class UserDto(BaseModel):
     id: uuid.UUID = Field(..., description="User unique identifier")
     email: str = Field(..., description="User email address")
     display_name: Optional[str] = Field(None, description="User display name")
+    preferred_email: Optional[str] = Field(None, description="User preferred email address")
+    phone: Optional[str] = Field(None, description="User phone number")
+    height: Optional[float] = Field(None, description="User height in centimeters")
+    weight: Optional[float] = Field(None, description="User weight in kilograms")
     picture_url: Optional[str] = Field(None, description="User profile picture URL")
     sex: Optional[str] = Field(None, description="User sex")
     birth_year: Optional[int] = Field(None, description="User birth year")
@@ -20,6 +24,10 @@ class UserDto(BaseModel):
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "email": "user@example.com",
                 "display_name": "John Doe",
+                "preferred_email": "john.doe@example.com",
+                "phone": "+1234567890",
+                "height": 175.0,
+                "weight": 70.0,
                 "picture_url": "https://example.com/photo.jpg",
                 "sex": "male",
                 "birth_year": 1990,

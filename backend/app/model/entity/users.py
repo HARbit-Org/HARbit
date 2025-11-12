@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import UUID, Column, DateTime, Integer, Text, func
+from sqlalchemy import UUID, Column, DateTime, Integer, Text, Float, func
 from db.session import Base
 
 class Users(Base):
@@ -13,6 +13,8 @@ class Users(Base):
     picture_url = Column(Text, nullable=True)
     sex = Column(Text, nullable=True)
     birth_year = Column(Integer, nullable=True)
+    height = Column(Float, nullable=True)
+    weight = Column(Float, nullable=True)
     daily_step_goal = Column(Integer, nullable=True)
     timezone = Column(Text, nullable=False, default='America/Lima')
     fcm_token = Column(Text, nullable=True)

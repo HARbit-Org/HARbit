@@ -13,6 +13,18 @@ data class UserDto(
     
     @SerialName("display_name")
     val displayName: String?,
+
+    @SerialName("preferred_email")
+    val preferredEmail: String?,
+
+    @SerialName("phone")
+    val phone: String?,
+
+    @SerialName("height")
+    val height: Float?,
+
+    @SerialName("weight")
+    val weight: Float?,
     
     @SerialName("picture_url")
     val pictureUrl: String?,

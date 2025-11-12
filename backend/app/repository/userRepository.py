@@ -65,7 +65,11 @@ class UserRepository:
         sex: Optional[str] = None,
         birth_year: Optional[int] = None,
         daily_step_goal: Optional[int] = None,
-        timezone: Optional[str] = None
+        timezone: Optional[str] = None,
+        weight: Optional[float] = None,
+        height: Optional[float] = None,
+        phone: Optional[str] = None,
+        preferred_email: Optional[str] = None
     ) -> Optional[Users]:
         """Update user information"""
         user = self.find_by_id(user_id)
@@ -84,6 +88,14 @@ class UserRepository:
             user.daily_step_goal = daily_step_goal
         if timezone is not None:
             user.timezone = timezone
+        if weight is not None:
+            user.weight = weight
+        if height is not None:
+            user.height = height
+        if phone is not None:
+            user.phone = phone
+        if preferred_email is not None:
+            user.preferred_email = preferred_email
 
         self.db.commit()
         self.db.refresh(user)

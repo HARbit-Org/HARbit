@@ -22,6 +22,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.harbit.ui.components.Header
+import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,15 +35,68 @@ fun ProfileScreen(
     onLogoutSuccess: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    var userName by remember { mutableStateOf("John Doe") }
-    var email by remember { mutableStateOf("john.doe@gmail.com") }
-    var phone by remember { mutableStateOf("+51987654321") }
-    var weight by remember { mutableStateOf("72.3") }
-    var height by remember { mutableStateOf("176") }
-    var dailyStepsGoal by remember { mutableStateOf("5000") }
-    
+    val updateState by viewModel.updateState.collectAsState()
     val logoutState by viewModel.logoutState.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    
+    // Collect form state from ViewModel
+    val userName by viewModel.userName.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val phone by viewModel.phone.collectAsState()
+    val height by viewModel.height.collectAsState()
+    val weight by viewModel.weight.collectAsState()
+    val pictureUrl by viewModel.pictureUrl.collectAsState()
+
+    // Snackbar state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Validation state
+    var isUserNameValid by remember { mutableStateOf(true) }
+    var isEmailValid by remember { mutableStateOf(true) }
+    var isPhoneValid by remember { mutableStateOf(true) }
+    var isWeightValid by remember { mutableStateOf(true) }
+    var isHeightValid by remember { mutableStateOf(true) }
+
+    var userNameError by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf("") }
+    var phoneError by remember { mutableStateOf("") }
+    var weightError by remember { mutableStateOf("") }
+    var heightError by remember { mutableStateOf("") }
+    
+    var hasTriedSubmit by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    
+    // Handle update state
+    LaunchedEffect(updateState) {
+        when (updateState) {
+            is ProfileUpdateState.Success -> {
+                // Show success message
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = "Perfil actualizado correctamente",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                viewModel.resetUpdateState()
+            }
+            is ProfileUpdateState.Error -> {
+                // Show error message
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = (updateState as ProfileUpdateState.Error).message,
+                        duration = SnackbarDuration.Long
+                    )
+                }
+                viewModel.resetUpdateState()
+            }
+            else -> { /* No action needed */ }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadUserData()
+    }
     
     // Handle logout state
     LaunchedEffect(logoutState) {
@@ -102,334 +160,384 @@ fun ProfileScreen(
         )
     }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-    ) {
-        // Header with profile picture
-        ProfileHeader()
-        
-        // Profile Form
-        Card(
+    if (isLoading) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Mi Perfil",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                // User Name Field
-                OutlinedTextField(
-                    value = userName,
-                    onValueChange = { userName = it },
-                    label = { Text("Nombre de usuario") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-                
-                // Email Field
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Correo electrónico preferido") },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = false,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledBorderColor = Color.Gray,
-                        disabledLabelColor = Color.Gray
-                    )
-                )
-                
-                // Phone Field
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Número de teléfono") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-                
-                // Weight and Height Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedTextField(
-                        value = weight,
-                        onValueChange = { weight = it },
-                        label = { Text("Peso (kg)") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary
-                        )
-                    )
-                    
-                    OutlinedTextField(
-                        value = height,
-                        onValueChange = { height = it },
-                        label = { Text("Altura (cm)") },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            focusedLabelColor = MaterialTheme.colorScheme.primary
-                        )
-                    )
-                }
-                
-                // Daily Steps Goal
-                OutlinedTextField(
-                    value = dailyStepsGoal,
-                    onValueChange = { dailyStepsGoal = it },
-                    label = { Text("Meta diaria de pasos") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-                
-                // Save Button
-                Button(
-                    onClick = { /* Save profile */ },
+            CircularProgressIndicator()
+        }
+        return
+    }
+    
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.surface
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+//                .padding(paddingValues)
+                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 0.dp)
+                .background(MaterialTheme.colorScheme.surface)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+        Header(
+            title = "Mi Perfil",
+            subtitle = "¡Queremos conocerte!"
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Profile picture
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (pictureUrl != null) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(pictureUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Foto de perfil",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    shape = RoundedCornerShape(24.dp)
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                )
+            } else {
+                // Fallback icon if no picture
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Guardar",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Foto de perfil",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(60.dp)
                     )
                 }
             }
         }
         
-        // Settings Section
-        SettingsSection()
-        
-        // Logout Button
-        Card(
+        // Profile Form
+        Spacer(modifier = Modifier.height(20.dp))
+
+        OutlinedTextField(
+            value = userName,
+            onValueChange = {
+                viewModel.updateUserName(it)
+                if (hasTriedSubmit) {
+                    validateUserName(it) { isValid, error ->
+                        isUserNameValid = isValid
+                        userNameError = error
+                    }
+                }
+            },
+            label = { Text("Nombre de usuario") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = !isUserNameValid,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
+        )
+        Text(
+            text = userNameError,
+            color = if (!isUserNameValid && userNameError.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier
+                .padding(start = 16.dp, top = 4.dp)
                 .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = {
+                viewModel.updateEmail(it)
+                if (hasTriedSubmit) {
+                    validateEmail(it) { isValid, error ->
+                        isEmailValid = isValid
+                        emailError = error
+                    }
+                }
+            },
+            label = { Text("Correo electrónico preferido") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = !isEmailValid,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
+        )
+        Text(
+            text = emailError,
+            color = if (!isEmailValid && emailError.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(start = 16.dp, top = 4.dp)
+                .fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        OutlinedTextField(
+            value = phone,
+            onValueChange = {
+                viewModel.updatePhone(it)
+                if (hasTriedSubmit) {
+                    validatePhone(it) { isValid, error ->
+                        isPhoneValid = isValid
+                        phoneError = error
+                    }
+                }
+            },
+            label = { Text("Número de teléfono") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            isError = !isPhoneValid,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                focusedLabelColor = MaterialTheme.colorScheme.primary
+            )
+        )
+        Text(
+            text = phoneError,
+            color = if (!isPhoneValid && phoneError.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .padding(start = 16.dp, top = 4.dp)
+                .fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Button(
-                onClick = { showLogoutDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                ),
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = "Cerrar sesión",
-                    modifier = Modifier.size(20.dp)
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = {
+                        viewModel.updateWeight(it)
+                        if (hasTriedSubmit) {
+                            validateWeight(it) { isValid, error ->
+                                isWeightValid = isValid
+                                weightError = error
+                            }
+                        }
+                    },
+                    label = { Text("Peso (kg)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = !isWeightValid,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Cerrar sesión",
+                    text = weightError,
+                    color = if (!isWeightValid && weightError.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 4.dp)
+                        .fillMaxWidth()
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = height,
+                    onValueChange = {
+                        viewModel.updateHeight(it)
+                        if (hasTriedSubmit) {
+                            validateHeight(it) { isValid, error ->
+                                isHeightValid = isValid
+                                heightError = error
+                            }
+                        }
+                    },
+                    label = { Text("Altura (cm)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = !isHeightValid,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+                Text(
+                    text = heightError,
+                    color = if (!isHeightValid && heightError.isNotEmpty()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surface,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 4.dp)
+                        .fillMaxWidth()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Save Button
+        Button(
+            onClick = {
+                hasTriedSubmit = true
+
+                // Validate all fields
+                validateUserName(userName) { isValid, error ->
+                    isUserNameValid = isValid
+                    userNameError = error
+                }
+                validateEmail(email) { isValid, error ->
+                    isEmailValid = isValid
+                    emailError = error
+                }
+                validatePhone(phone) { isValid, error ->
+                    isPhoneValid = isValid
+                    phoneError = error
+                }
+                validateWeight(weight) { isValid, error ->
+                    isWeightValid = isValid
+                    weightError = error
+                }
+                validateHeight(height) { isValid, error ->
+                    isHeightValid = isValid
+                    heightError = error
+                }
+
+                // If all valid, check for changes and update profile
+                if (isUserNameValid && isEmailValid && isPhoneValid && isWeightValid && isHeightValid) {
+                    if (!viewModel.hasUserDataChanged()) {
+                        // No changes detected, show snackbar
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "No hay cambios para guardar",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    } else {
+                        // Changes detected, proceed with update
+                        viewModel.updateProfile()
+                    }
+                }
+            },
+            modifier = Modifier
+                .height(48.dp),
+            enabled = updateState !is ProfileUpdateState.Loading,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            ),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            if (updateState is ProfileUpdateState.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White
+                )
+            } else {
+                Text(
+                    text = "Guardar",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White
                 )
             }
         }
-        
-        Spacer(modifier = Modifier.height(100.dp)) // Space for bottom navigation
-    }
-}
 
-@Composable
-private fun ProfileHeader() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = { showLogoutDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Profile Picture
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                        CircleShape
-                    )
-                    .border(
-                        2.dp,
-                        MaterialTheme.colorScheme.primary,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                // Simplified user avatar - mountain/person silhouette
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = "John Doe",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Text(
-                text = "Miembro desde enero 2024",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingsSection() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+                .padding(16.dp)
+                .height(48.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error
+            ),
+            shape = RoundedCornerShape(24.dp)
         ) {
             Text(
-                text = "Configuración",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                SettingItem(
-                    icon = Icons.Default.Notifications,
-                    title = "Notificaciones",
-                    subtitle = "Gestiona tus alertas y recordatorios"
-                )
-                
-                SettingItem(
-                    icon = Icons.Default.Watch,
-                    title = "Dispositivos conectados",
-                    subtitle = "Administra tus wearables"
-                )
-                
-                SettingItem(
-                    icon = Icons.Default.Security,
-                    title = "Privacidad y datos",
-                    subtitle = "Controla el uso de tu información"
-                )
-                
-                SettingItem(
-                    icon = Icons.Default.Help,
-                    title = "Ayuda y soporte",
-                    subtitle = "Obtén asistencia técnica"
-                )
-                
-                SettingItem(
-                    icon = Icons.Default.Info,
-                    title = "Acerca de HARbit",
-                    subtitle = "Versión 1.0.0"
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                fontSize = 14.sp,
+                text = "Cerrar sesión",
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Text(
-                text = subtitle,
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White
             )
         }
         
-        Icon(
-            imageVector = Icons.Default.ArrowForward,
-            contentDescription = "Ir a $title",
-            tint = Color.Gray,
-            modifier = Modifier.size(16.dp)
-        )
+        Spacer(modifier = Modifier.height(18.dp)) // Space for bottom navigation
+        }
+    }
+}
+
+// Validation helper functions
+private fun isEmailValid(email: String): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
+
+private fun isPhoneValid(phone: String): Boolean {
+    // Accepts phone numbers starting with +, followed by 10 to 15 digits (international format)
+    val regex = Regex("^\\+[1-9]\\d{9,14}\$")
+    return regex.matches(phone)
+}
+
+private fun validateEmail(email: String, callback: (Boolean, String) -> Unit) {
+    when {
+        email.isBlank() -> callback(false, "El correo electrónico es obligatorio")
+        !isEmailValid(email) -> callback(false, "Ingresa un correo electrónico válido")
+        else -> callback(true, "")
+    }
+}
+
+private fun validatePhone(phone: String, callback: (Boolean, String) -> Unit) {
+    when {
+        phone.isBlank() -> callback(false, "El número de teléfono es obligatorio")
+        !isPhoneValid(phone) -> callback(false, "Ingresa un número de teléfono válido en formato internacional (ejemplo: +521234567890)")
+        else -> callback(true, "")
+    }
+}
+
+private fun validateWeight(weight: String, callback: (Boolean, String) -> Unit) {
+    when {
+        weight.isBlank() -> callback(false, "El peso es obligatorio")
+        weight.toFloatOrNull() == null -> callback(false, "Ingresa un peso válido")
+        weight.toFloat() <= 0 -> callback(false, "El peso debe ser mayor a 0")
+        weight.toFloat() > 300 -> callback(false, "Ingresa un peso realista")
+        else -> callback(true, "")
+    }
+}
+
+private fun validateHeight(height: String, callback: (Boolean, String) -> Unit) {
+    when {
+        height.isBlank() -> callback(false, "La altura es obligatoria")
+        height.toFloatOrNull() == null -> callback(false, "Ingresa una altura válida")
+        height.toFloat() <= 0 -> callback(false, "La altura debe ser mayor a 0")
+        height.toFloat() < 50 -> callback(false, "Ingresa una altura realista")
+        height.toFloat() > 300 -> callback(false, "Ingresa una altura realista")
+        else -> callback(true, "")
+    }
+}
+
+fun validateUserName(userName: String, callback: (Boolean, String) -> Unit) {
+    when {
+        userName.isBlank() -> callback(false, "El nombre de usuario es obligatorio")
+        userName.length < 3 -> callback(false, "El nombre debe tener al menos 3 caracteres")
+        else -> callback(true, "")
     }
 }
