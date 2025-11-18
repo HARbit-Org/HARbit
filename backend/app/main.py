@@ -8,9 +8,6 @@ from api.v1.jobController import router as jobRouter
 from api.v1.progressController import router as progressRouter
 from api.jobs import weekly_progress_cron
 
-# Import all models to register them with SQLAlchemy
-from model.entity import users, rawSensorRecords, userProviders, processedActivities, notifications, progressInsights, dailySteps, heartRateReadings
-
 app = FastAPI(title="HARbit API")
 app.include_router(rawSensorRouter)
 app.include_router(authRouter)

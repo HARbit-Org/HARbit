@@ -88,7 +88,7 @@ fun SmartwatchSetupScreen(
             
             // Instruction Text
             Text(
-                text = "Para obtener lecturas más precisas de tu actividad física y signos vitales, coloca el reloj inteligente en tu brazo dominante.",
+                text = "Para obtener lecturas más precisas de tu actividad física, coloca el reloj inteligente en tu brazo dominante",
                 fontSize = 16.sp,
                 color = Color.Black,
                 textAlign = TextAlign.Center,

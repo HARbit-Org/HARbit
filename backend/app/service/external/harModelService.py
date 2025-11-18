@@ -6,7 +6,7 @@ class HarModelService:
     def __init__(self):
         # Configure the external HAR model endpoint
         self.external_endpoint = "http://192.168.18.113:5000/api/classify"
-        self.timeout = 60  # seconds
+        self.timeout = 300  # seconds
 
     def send_data_to_har_model(self, data: sensorRequestDto):
         """Send sensor data to external endpoint and wait for response"""

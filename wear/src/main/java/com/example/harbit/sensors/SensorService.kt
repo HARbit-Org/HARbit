@@ -206,7 +206,7 @@ class SensorService : LifecycleService(), SensorEventListener, MessageClient.OnM
     }
 
     override fun onSensorChanged(e: SensorEvent) {
-        // ✅ Monitor actual sampling frequency
+        // Monitor actual sampling frequency
         val currentTime = System.currentTimeMillis()
         sampleCount++
         
