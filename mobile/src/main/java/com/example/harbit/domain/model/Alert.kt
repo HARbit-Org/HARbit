@@ -1,6 +1,4 @@
-package com.example.harbit.domain
-
-import com.example.harbit.domain.model.AlertType
+package com.example.harbit.domain.model
 
 data class Alert(
     val type: AlertType,

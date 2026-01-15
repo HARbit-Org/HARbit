@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.harbit.data.local.dao.ActivityDistribution
-import com.example.harbit.data.repository.ActivityRepository
-import com.example.harbit.domain.Alert
+import com.example.harbit.domain.repository.ActivityRepository
+import com.example.harbit.domain.model.Alert
 import com.example.harbit.domain.events.SensorDataEvents
 import com.example.harbit.service.WatchConnectionManager
 import dagger.hilt.android.lifecycle.HiltViewModel

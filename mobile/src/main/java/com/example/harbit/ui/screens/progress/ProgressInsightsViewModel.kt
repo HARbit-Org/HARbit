@@ -3,7 +3,7 @@ package com.example.harbit.ui.screens.progress
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.harbit.data.remote.dto.ProgressInsightDto
-import com.example.harbit.data.repository.ProgressRepository
+import com.example.harbit.domain.repository.ProgressRepository
 import com.example.harbit.ui.screens.dashboard.ActivityDistributionState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.harbit.data.local.preferences.AuthPreferencesRepository
 import com.example.harbit.data.remote.dto.ProgressInsightDto
 import com.example.harbit.data.remote.service.ProgressApiService
+import com.example.harbit.domain.repository.ProgressRepository
 import kotlinx.coroutines.flow.first
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject

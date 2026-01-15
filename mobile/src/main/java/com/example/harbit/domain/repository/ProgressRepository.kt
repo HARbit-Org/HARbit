@@ -1,4 +1,4 @@
-package com.example.harbit.data.repository
+package com.example.harbit.domain.repository
 
 import com.example.harbit.data.remote.dto.ProgressInsightDto
 

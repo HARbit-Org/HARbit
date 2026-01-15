@@ -8,6 +8,7 @@ import com.example.harbit.data.local.entity.CachedActivityDistributionEntity
 import com.example.harbit.data.local.entity.ProcessedActivityEntity
 import com.example.harbit.data.local.preferences.AuthPreferencesRepository
 import com.example.harbit.data.remote.service.ActivityApiService
+import com.example.harbit.domain.repository.ActivityRepository
 import com.example.harbit.util.getCurrentTimezoneOffsetMinutes
 import kotlinx.coroutines.flow.first
 import java.time.Instant

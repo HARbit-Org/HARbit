@@ -1,8 +1,8 @@
 package com.example.harbit.di
 
-import com.example.harbit.data.repository.ActivityRepository
+import com.example.harbit.domain.repository.ActivityRepository
 import com.example.harbit.data.repository.ActivityRepositoryImpl
-import com.example.harbit.data.repository.ProgressRepository
+import com.example.harbit.domain.repository.ProgressRepository
 import com.example.harbit.data.repository.ProgressRepositoryImpl
 import com.example.harbit.data.repository.SensorRepositoryImpl
 import com.example.harbit.data.repository.UserRepositoryImpl

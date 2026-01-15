@@ -2,7 +2,7 @@ package com.example.harbit.ui.screens.dashboard
 
 import com.example.harbit.data.local.dao.ActivityDistribution
 import com.example.harbit.data.remote.dto.ActivityDistributionItemDto
-import com.example.harbit.domain.Alert
+import com.example.harbit.domain.model.Alert
 import com.example.harbit.domain.model.AlertType
 
 object AlertGenerator {

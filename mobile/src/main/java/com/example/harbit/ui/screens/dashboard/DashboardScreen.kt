@@ -41,7 +41,7 @@ import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import com.example.harbit.data.local.dao.ActivityDistribution
-import com.example.harbit.domain.Alert
+import com.example.harbit.domain.model.Alert
 import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.components.AlertCard
 import com.example.harbit.ui.components.InfoPopup

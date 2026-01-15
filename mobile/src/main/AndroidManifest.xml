@@ -58,7 +58,7 @@
         
         <!-- Firebase Messaging Service -->
         <service
-            android:name=".services.HARbitFirebaseMessagingService"
+            android:name=".service.HARbitFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

@@ -1,4 +1,4 @@
-package com.example.harbit.fcm
+package com.example.harbit.service.fcm
 
 import android.util.Log
 import com.example.harbit.data.remote.dto.UpdateFcmTokenRequest

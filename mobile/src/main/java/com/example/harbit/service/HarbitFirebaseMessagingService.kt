@@ -1,4 +1,4 @@
-package com.example.harbit.services
+package com.example.harbit.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
