@@ -1,131 +1,88 @@
-# HARbit Mobile App
+# HARbit - Human Activity Recognition & Health Tracking Platform
 
-HARbit is a mobile application designed to help users monitor and improve their physical habits through smartwatch integration and activity tracking.
+HARbit is a comprehensive activity tracking platform that combines Android mobile and Wear OS applications with a robust backend API to help users monitor and improve their physical habits through real-time activity recognition and health metrics analysis.
 
-## Features
+## 🎯 Overview
 
-### Authentication & Onboarding
-- **Welcome Screen**: Introduction with Google Sign-In integration
-- **Profile Completion**: User data collection form
-- **Privacy Policy**: Data protection information
-- **Smartwatch Setup**: Instructions for optimal device placement
+HARbit uses smartwatch sensors (accelerometer) to continuously monitor user activities, providing insights into sedentary behavior, active time, and overall health patterns. The system offers personalized feedback, progress tracking, and actionable recommendations to promote healthier lifestyles.
 
-### Main Application
-- **Activity Dashboard**: Daily activity distribution with pie chart visualization
-- **Health Metrics**: Steps count and heart rate monitoring
-- **Progress Tracking**: Weekly achievements and improvement suggestions
-- **Profile Management**: User preferences and settings
+## 🏗️ Architecture
 
-### Detailed Views
-- **Activity Distribution Details**: Historical activity breakdown
-- **Heart Rate History**: Detailed cardiovascular metrics with charts
-- **Steps History**: Daily step count tracking and summaries
+The project consists of three main components:
 
-## Project Structure
+### 1. **Mobile App** (Android - Kotlin/Jetpack Compose)
+User-facing application for viewing activity insights, and managing profile.
 
-```
-mobile/src/main/java/com/example/harbit/
-├── MainActivity.kt                          # Main entry point
-├── ui/
-│   ├── theme/                              # App theming and colors
-│   │   ├── Color.kt                        # Color definitions
-│   │   ├── Theme.kt                        # Material Design theme
-│   │   └── Type.kt                         # Typography styles
-│   ├── components/                         # Reusable UI components
-│   │   └── BottomNavigation.kt             # Bottom navigation bar
-│   ├── navigation/                         # Navigation logic
-│   │   └── AppNavigation.kt                # Navigation graph
-│   └── screens/                           # All app screens
-│       ├── auth/                          # Authentication flow
-│       │   ├── WelcomeScreen.kt           # Landing page
-│       │   ├── ProfileCompletionScreen.kt  # Profile setup
-│       │   └── PrivacyPolicyScreen.kt     # Privacy policy
-│       ├── onboarding/                    # Setup flow
-│       │   └── SmartwatchSetupScreen.kt   # Device instructions
-│       ├── dashboard/                     # Main dashboard
-│       │   └── DashboardScreen.kt         # Activity overview
-│       ├── details/                       # Detail screens
-│       │   ├── ActivityDistributionDetailScreen.kt
-│       │   ├── HeartRateDetailScreen.kt
-│       │   └── StepsDetailScreen.kt
-│       ├── progress/                      # Progress tracking
-│       │   └── ProgressScreen.kt          # Achievements & suggestions
-│       └── profile/                       # User profile
-│           └── ProfileScreen.kt           # Profile management
-```
+### 2. **Wear OS App** (Kotlin)
+Companion smartwatch application for continuous sensor data collection and real-time activity monitoring.
 
-## User Stories Implementation
+### 3. **Backend API** (Python/FastAPI)
+RESTful API handling authentication, data processing, activity classification, and analytics.
 
-The app implements all the user stories from the provided specification:
+## ✨ Features
 
-- **HU0001-HU0002**: Authentication via Google Sign-In
-- **HU0003**: Smartwatch synchronization UI
-- **HU0004-HU0005**: Daily activity and physiological data visualization
-- **HU0006**: Inactivity period notifications (UI components ready)
-- **HU0007-HU008**: Profile and preferences management
-- **HU0009-HU0011**: Historical data visualization
-- **HU0012-HU0014**: Progress tracking with achievements
-- **HU015**: Daily step goal setting
-- **HU016**: Smartwatch positioning instructions
-- **HU017**: Privacy policy access
+### Authentication & User Management
+- 🔐 **Google Sign-In Integration**: Secure OAuth2 authentication
+- 👤 **Profile Management**: Complete user profile with health metrics (height, weight, step goals)
+- 🔒 **Privacy Controls**: Comprehensive privacy policy and data protection
+- 🔑 **Session Management**: Secure token-based authentication with refresh tokens
 
-## Technology Stack
+### Activity Tracking & Recognition
+- 📊 **Real-time Activity Classification**: Automatic recognition of activities (Sit, Walk, Type, Eat, Write, Workouts)
+- ⌚ **Wear OS Integration**: Continuous sensor data collection at 20Hz
+- 📈 **Activity Distribution**: Visual breakdown of daily activities with pie charts
+- 🎯 **Smart Batching**: Efficient data transmission (~50KB batches) to minimize battery impact
 
-- **Kotlin**: Primary programming language
-- **Jetpack Compose**: Modern UI toolkit
-- **Material Design 3**: UI design system
-- **Navigation Compose**: Screen navigation
-- **Play Services Wearable**: Smartwatch integration
-- **Gradle**: Build system
+### Progress & Insights
+- 🏆 **Weekly Progress Reports**: Automated insights on activity patterns
+- 💡 **Improvement Suggestions**: Recommendations for healthier habits
+- 📝 **Motivational Messages**: Dynamic, personalized encouragement
 
-## Design System
+### Data Visualization
+- 📊 **Interactive Charts**: Activity distribution pie charts
+- 🎨 **Color-coded Activities**: Distinct visual representation for each activity type
+- 📅 **Historical Views**: Detailed history screens for all metrics
+- 🔍 **Activity Legends**: Clear explanations with info popups
 
-### Colors
-- **Primary Teal**: #2E8B8B (HARbit brand color)
-- **Activity Colors**: Distinct colors for different activity types
-- **Status Colors**: Success (green), warning (orange), error (red)
+### Sensor Service Features
+- 🔋 **Partial WakeLock**: Maintains CPU activity for consistent 20Hz sampling
+- 📦 **Smart Batching**: Buffers sensor data before transmission
+- 🔄 **Keep-Alive Mechanism**: Prevents process throttling
+- 🎯 **Dual Sensor Support**: Accelerometer and gyroscope data collection
+- 📡 **Wearable MessageClient**: Efficient data transmission to phone
 
-### Typography
-- Material Design 3 typography scale
-- Emphasis on readability and accessibility
+### Backend Features
+- 🔐 **JWT Authentication**: Secure token-based auth with refresh tokens
+- 🗄️ **PostgreSQL Database**: Robust data persistence with SQLAlchemy ORM
+- ⏰ **Scheduled Jobs**: Automated weekly progress calculation
+- 🎯 **Activity Classification**: ML-ready activity recognition pipeline
+- 📊 **Aggregation Queries**: Efficient data summarization for visualizations
+- 🔄 **CORS Support**: Configured for mobile app integration
 
-### Components
-- Custom bottom navigation with 3 main sections
-- Consistent card-based layout
-- Interactive charts and visualizations
+## 🛠️ Technology Stack
 
-## Build Instructions
+### Mobile App
+- **Language**: Kotlin
+- **UI Framework**: Jetpack Compose with Material Design 3
+- **Architecture**: MVVM with Hilt dependency injection
+- **Navigation**: Navigation Compose
+- **Networking**: Retrofit + OkHttp with interceptors
+- **Async**: Kotlin Coroutines + Flow
+- **Local Storage**: DataStore for token management
+- **Auth**: Google Play Services Auth
+- **Wearable**: Google Play Services Wearable API
 
-1. **Prerequisites**:
-   - Android Studio with Kotlin support
-   - Android SDK 30 or higher
-   - Gradle 8.0+
+### Wear OS App
+- **Language**: Kotlin
+- **UI**: Jetpack Compose for Wear OS
+- **Sensors**: Android Sensor Framework (20Hz sampling)
+- **Background**: Foreground Service with WakeLock
+- **Communication**: Wearable MessageClient for phone sync
 
-2. **Dependencies**:
-   - All dependencies are managed through `build.gradle.kts`
-   - Includes Compose BOM, Navigation, Google Play Services
-
-3. **Build**:
-   ```bash
-   ./gradlew assembleDebug
-   ```
-
-4. **Run**:
-   - Connect Android device or start emulator
-   - Run from Android Studio or use `./gradlew installDebug`
-
-## Future Enhancements
-
-- **Backend Integration**: Connect with health data APIs
-- **Real-time Notifications**: Implement push notifications for inactivity alerts
-- **Data Analytics**: Advanced health metrics analysis
-- **Social Features**: Community challenges and sharing
-- **Machine Learning**: Personalized recommendations
-- **Wear OS App**: Companion smartwatch application
-
-## Notes
-
-- The current implementation focuses on UI/UX with mock data
-- Authentication integration requires Google Services configuration
-- Smartwatch integration is prepared but requires Wear OS companion app
-- Charts use simplified Canvas implementations (can be enhanced with charting libraries)
+### Backend
+- **Language**: Python 3.11+
+- **Framework**: FastAPI with Pydantic validation
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Authentication**: OAuth2 with JWT (PyJWT)
+- **CORS**: FastAPI CORS middleware
+- **Environment**: python-dotenv for configuration
