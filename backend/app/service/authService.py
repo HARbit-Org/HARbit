@@ -26,12 +26,12 @@ class AuthService:
         
         # Google OAuth client IDs - from environment variables
         self.google_client_ids = {
-            "android": os.getenv("GOOGLE_ANDROID_CLIENT_ID", "297962456687-36tcjh8fkjk7ggfdi7o5d78aq4i64k9r.apps.googleusercontent.com"),
-            "web": os.getenv("GOOGLE_WEB_CLIENT_ID", "297962456687-1b01sulb6ndfjn83sneor62qqdt1qpum.apps.googleusercontent.com")
+            "android": os.getenv("GOOGLE_ANDROID_CLIENT_ID"),
+            "web": os.getenv("GOOGLE_WEB_CLIENT_ID")
         }
         
         # JWT secret - MUST be in environment variable in production
-        self.jwt_secret = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-this-in-production")
+        self.jwt_secret = os.getenv("JWT_SECRET_KEY")
         self.jwt_algorithm = "HS256"
         self.access_token_expire_hours = 1
         self.refresh_token_expire_days = 30

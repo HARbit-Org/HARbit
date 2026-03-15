@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi_crons import Crons
+from dotenv import load_dotenv
 from api.v1.rawSensorController import router as rawSensorRouter
 from api.v1.authController import router as authRouter
 from api.v1.userController import router as userRouter
@@ -7,6 +8,8 @@ from api.v1.activityController import router as activityRouter
 from api.v1.jobController import router as jobRouter
 from api.v1.progressController import router as progressRouter
 from api.jobs import weekly_progress_cron
+
+load_dotenv()  # Load environment variables from .env file
 
 app = FastAPI(title="HARbit API")
 app.include_router(rawSensorRouter)
