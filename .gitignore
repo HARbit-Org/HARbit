@@ -21,3 +21,6 @@ FCM_IMPLEMENTATION_SUMMARY.md
 FCM_SETUP.md
 HILT_MIGRATION_COMPLETE.md
 /docs
+.env
+*.pyc
+__pycache__/
