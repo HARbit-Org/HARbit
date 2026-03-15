@@ -5,6 +5,7 @@ from repository.notificationRepository import NotificationRepository
 from repository.userRepository import UserRepository
 import firebase_admin
 from firebase_admin import credentials, messaging
+import os
 
 
 class NotificationService:
@@ -44,7 +45,8 @@ class NotificationService:
                 firebase_admin.get_app()
             except ValueError:
                 # Not initialized, so initialize it
-                cred = credentials.Certificate("C:\\Users\\andre\\Documents\\HARbit-Org\\HARbit\\backend\\harbit-app-firebase-adminsdk-fbsvc-31a0b86f1f.json")
+                cert_path = os.environ["FIREBASE_CERT_PATH"]
+                cred = credentials.Certificate(cert_path)
                 firebase_admin.initialize_app(cred)
             
             self._firebase_initialized = True
