@@ -71,7 +71,7 @@ object NetworkModule {
         json: Json
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.18.113:8000")
+            .baseUrl("http://3.217.74.251")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
@@ -86,7 +86,7 @@ object NetworkModule {
         json: Json
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://192.168.18.113:8000")
+            .baseUrl("http://3.217.74.251")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()

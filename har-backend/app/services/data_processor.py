@@ -13,14 +13,10 @@ import joblib
 # Configurar TensorFlow para evitar warnings adicionales
 tf.get_logger().setLevel('ERROR')
 
-# Cargar modelo y encoder una sola vez al importar el módulo
-MODEL_PATH = r"C:\Users\andre\Documents\HARbit-Org\HARbit\har-backend\app\models\model_with_stand_in_others\saved_model"
-ENCODER_PATH = r"C:\Users\andre\Documents\HARbit-Org\HARbit\har-backend\app\models\model_with_stand_in_others\label_encoder.joblib"
-
 try:
-    loaded_model = tf.saved_model.load(MODEL_PATH)
+    loaded_model = tf.saved_model.load(os.getenv("MODEL_PATH"))
     infer = loaded_model.signatures["serving_default"]
-    label_encoder = joblib.load(ENCODER_PATH)
+    label_encoder = joblib.load(os.getenv("ENCODER_PATH"))
     print("Modelo y encoder cargados exitosamente")
 except Exception as e:
     print(f"Error cargando modelo o encoder: {e}")

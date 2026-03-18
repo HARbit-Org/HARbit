@@ -5,7 +5,7 @@ from model.dto.response.harModelResponseDto import harModelResponseDto
 class HarModelService:
     def __init__(self):
         # Configure the external HAR model endpoint
-        self.external_endpoint = "http://192.168.18.113:5000/api/classify"
+        self.external_endpoint = "http://34.195.16.127/api/classify"
         self.timeout = 300  # seconds
 
     def send_data_to_har_model(self, data: sensorRequestDto):
