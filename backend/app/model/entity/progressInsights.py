@@ -15,7 +15,7 @@ class ProgressInsights(Base):
     comparison_value = Column(Numeric(12, 3), nullable=False)
     current_value = Column(Numeric(12, 3), nullable=False)
     delta_value = Column(Numeric(12, 3), nullable=False)
-    delta_pct = Column(Numeric(7, 4), nullable=False)
+    delta_pct = Column(Numeric(8, 2), nullable=False)  # Changed from (7,4) to (8,2) to allow up to ±999.99%
     message_title = Column(Text, nullable=False)
     message_body = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

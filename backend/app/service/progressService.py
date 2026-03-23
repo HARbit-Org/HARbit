@@ -343,9 +343,17 @@ class ProgressService:
         delta_active = current_active - previous_active
         delta_sedentary = current_sedentary - previous_sedentary
         
-        # Calculate percentage changes
-        delta_active_pct = (delta_active / previous_active * 100) if previous_active > 0 else 0
-        delta_sedentary_pct = (delta_sedentary / previous_sedentary * 100) if previous_sedentary > 0 else 0
+        # Calculate percentage changes (cap at ±999% to avoid database overflow)
+        MAX_PERCENTAGE = 999.0
+        if previous_active > 0:
+            delta_active_pct = min(max((delta_active / previous_active * 100), -MAX_PERCENTAGE), MAX_PERCENTAGE)
+        else:
+            delta_active_pct = 0
+            
+        if previous_sedentary > 0:
+            delta_sedentary_pct = min(max((delta_sedentary / previous_sedentary * 100), -MAX_PERCENTAGE), MAX_PERCENTAGE)
+        else:
+            delta_sedentary_pct = 0
 
         data = []
         

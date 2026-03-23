@@ -7,12 +7,14 @@ import com.example.harbit.data.remote.dto.RefreshTokenRequestDto
 import com.example.harbit.data.remote.dto.UserDto
 import com.example.harbit.data.remote.service.AuthApiService
 import com.example.harbit.domain.repository.AuthRepository
+import com.example.harbit.service.fcm.FCMTokenManager
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApiService: AuthApiService,
-    private val authPreferences: AuthPreferencesRepository
+    private val authPreferences: AuthPreferencesRepository,
+    private val fcmTokenManager: FCMTokenManager
 ) : AuthRepository {
 
     override suspend fun authenticateWithGoogle(idToken: String): Result<AuthResponseDto> {
@@ -45,6 +47,9 @@ class AuthRepositoryImpl @Inject constructor(
                     pictureUrl = authResponse.user.pictureUrl,
                     isProfileComplete = authResponse.isProfileComplete
                 )
+                
+                // Register FCM token now that we have valid auth credentials
+                fcmTokenManager.refreshToken()
                 
                 Result.success(authResponse)
             } else {
