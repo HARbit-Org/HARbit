@@ -99,7 +99,12 @@ class ActivityDistributionViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        stopListeningForDataUploads()
+        // Stop data upload listener but keep watch monitoring active
+        // Watch monitoring is managed by the singleton WatchConnectionManager
+        // and should persist across ViewModel instances
+        dataUploadListenerJob?.cancel()
+        dataUploadListenerJob = null
+        Log.d("ActivityDistViewModel", "ViewModel cleared, data upload listener stopped")
     }
 
     /**

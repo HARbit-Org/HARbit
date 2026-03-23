@@ -87,8 +87,12 @@ class WatchConnectionManager @Inject constructor(
             Log.d(TAG, "Message listener unregistered")
         }
 
-        _isWatchConnected.value = false
-        Log.d(TAG, "Watch connection monitoring stopped")
+        // Don't reset connection state - preserve last known state
+        // Connection state should only be set to false when:
+        // 1. Ping times out
+        // 2. No nodes found
+        // 3. Send ping fails
+        Log.d(TAG, "Watch connection monitoring stopped (preserving connection state: ${_isWatchConnected.value})")
     }
 
     /**

@@ -46,6 +46,7 @@ import com.example.harbit.ui.components.ActivityDistributionCard
 import com.example.harbit.ui.components.AlertCard
 import com.example.harbit.ui.components.InfoPopup
 import java.time.LocalDate
+import androidx.compose.runtime.DisposableEffect
 
 import kotlin.math.cos
 import kotlin.math.sin
@@ -62,18 +63,22 @@ fun DashboardScreen(
     val isWatchConnected by viewModel.isWatchConnected.collectAsStateWithLifecycle()
     var alerts: List<Alert> = emptyList()
     
-    // Load today's activity distribution on first composition AND when returning to screen
+    // Load today's activity distribution on first composition
     LaunchedEffect(Unit) {
         val today = LocalDate.now()
         viewModel.loadActivityDistribution(today, today)
-        // Start listening for sensor data upload events and watch connection monitoring
-        viewModel.startListeningForDataUploads()
     }
     
-    // Stop listening when leaving screen
-    androidx.compose.runtime.DisposableEffect(Unit) {
+    // Start/restart watch monitoring whenever screen appears
+    // Uses DisposableEffect to ensure it runs even when returning from back stack
+    DisposableEffect(Unit) {
+        // Start monitoring and force a connection check
+        viewModel.startListeningForDataUploads()
+        viewModel.checkWatchConnection() // Force immediate ping to refresh status
+        
         onDispose {
-            viewModel.stopListeningForDataUploads()
+            // Only stop fully when leaving this screen completely
+            // (not when just going to detail screen)
         }
     }
     
