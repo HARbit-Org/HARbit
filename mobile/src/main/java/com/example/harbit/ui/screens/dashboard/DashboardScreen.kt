@@ -47,6 +47,10 @@ import com.example.harbit.ui.components.AlertCard
 import com.example.harbit.ui.components.InfoPopup
 import java.time.LocalDate
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 
 import kotlin.math.cos
 import kotlin.math.sin
@@ -350,17 +354,40 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        val annotatedText = buildAnnotatedString {
+            append("• Pausas activas: Se recomiendan las pausas de 5 minutos cada media hora en función de un estudio de Harvard Health, el cual demuestra la reducción de glucosa en sangre y la presión arterial sistólica. ")
+
+            // Add clickable "Leer más" that opens URL
+            pushStringAnnotation(tag = "URL", annotation = "https://www.health.harvard.edu/heart-health/short-walks-every-half-hour-may-offset-harms-of-too-much-sitting")
+            withStyle(style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+            ) {
+                append("Leer más")
+            }
+            pop()
+
+            append("\n\n• Actividad física semanal: La OMS recomienda por lo menos de 150 a 300 minutos por semana (21 a 42 minutos diarios, aproximadamente) de actividad física de intensidad moderada o vigorosa para todos los adultos, con el objetivo de prevenir y ayudar a manejar las cardiopatías, la diabetes de tipo 2 y el cáncer, así como para reducir los síntomas de la depresión y la ansiedad, disminuir el deterioro cognitivo, mejorar la memoria y potenciar la salud cerebral. ")
+
+            pushStringAnnotation(tag = "URL", annotation = "https://www.who.int/publications/i/item/9789240015128")
+            withStyle(style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            )
+            ) {
+                append("Leer más")
+            }
+            pop()
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             InfoPopup(
-                infoText = """
-                    • Pausas activas: Se recomiendan las pausas de 5 minutos cada media hora en función de un estudio de Harvard Health, el cual demuestra la reducción de glucosa en sangre y la presión arterial sistólica.
-                    
-                    • Actividad física semanal: La OMS recomienda por lo menos de 150 a 300 minutos por semana (21 a 42 minutos diarios, aproximadamente) de actividad física de intensidad moderada o vigorosa para todos los adultos, con el objetivo de prevenir y ayudar a manejar las cardiopatías, la diabetes de tipo 2 y el cáncer, así como para reducir los síntomas de la depresión y la ansiedad, disminuir el deterioro cognitivo, mejorar la memoria y potenciar la salud cerebral.
-                """.trimIndent(),
+                infoText = annotatedText,
                 title = "¿En qué se basan las alertas de HARbit?",
                 icon = Icons.Default.HelpOutline
             )
