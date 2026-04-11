@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -100,7 +101,10 @@ class HARbitFirebaseMessagingService : FirebaseMessagingService() {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(body)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // We'll update this later
+            .setSmallIcon(R.drawable.ic_notification) // We'll update this later
+            .setLargeIcon(BitmapFactory.decodeResource(
+                resources, R.mipmap.ic_launcher
+            ))
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

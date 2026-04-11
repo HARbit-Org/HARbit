@@ -3,6 +3,7 @@ package com.example.harbit.service
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.graphics.BitmapFactory
 //import android.content.ContentValues
 //import android.content.Context
 //import android.os.Environment
@@ -245,6 +246,9 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
             .setContentTitle("HARbit")
             .setContentText("Conectado")
             .setSmallIcon(R.drawable.ic_notification)
+            .setLargeIcon(BitmapFactory.decodeResource(
+                resources, R.mipmap.ic_launcher
+            ))
             .setOngoing(true)
             .build()
     }
@@ -257,6 +261,9 @@ class SensorDataService : LifecycleService(), MessageClient.OnMessageReceivedLis
                 .setContentTitle("HARbit")
                 .setContentText("Conectado")
                 .setSmallIcon(R.drawable.ic_notification)
+                .setLargeIcon(BitmapFactory.decodeResource(
+                    resources, R.mipmap.ic_launcher
+                ))
                 .setOngoing(true)
                 .build()
 
