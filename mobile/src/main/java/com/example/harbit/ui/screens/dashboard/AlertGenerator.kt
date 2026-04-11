@@ -12,9 +12,13 @@ object AlertGenerator {
     private const val ALMOST_ACTIVE_THRESHOLD = 25 // 25 min active is close to the goal
     private const val MIN_DATA_THRESHOLD = 15 // At least 15 min of data to generate insights
 
+    private const val DESK_WORK_THRESHOLD = 45 // 45 min of Write+Type triggers ergonomic alert
+    private const val HIGH_SEDENTARY_RATIO = 80 // 80% of time sedentary is too much
+
     // Activity categories
     private val SEDENTARY_ACTIVITIES = setOf("Sit", "Write", "Eat", "Type")
     private val ACTIVE_ACTIVITIES = setOf("Walk", "Workouts")
+    private val DESK_ACTIVITIES = setOf("Write", "Type")
 
     // Motivational messages pool
     private val MOTIVATIONAL_MESSAGES = listOf(
@@ -91,10 +95,60 @@ object AlertGenerator {
             )
         }
 
-        // 4. Check for balanced activity (LOW PRIORITY)
         val sedentaryPct = ((sedentaryMinutes / totalMinutes) * 100).toInt()
         val activePct = ((activeMinutes / totalMinutes) * 100).toInt()
 
+        // 3. No active time at all (HIGH PRIORITY)
+        if (activeMinutes == 0.0) {
+            alerts.add(
+                Alert(
+                    type = AlertType.NoActivity(totalMinutes.toInt()),
+                    message = "⚠️ No se detectó actividad física hoy. Incluso una caminata corta de 10 minutos marca la diferencia para tu salud.",
+                    priority = 1
+                )
+            )
+        }
+
+        // 4. Workout specifically detected (HIGHEST PRIORITY celebration)
+        val workoutMinutes = activities
+            .filter { it.activityLabel == "Workouts" }
+            .sumOf { it.totalMinutes }
+        if (workoutMinutes > 0) {
+            alerts.add(
+                Alert(
+                    type = AlertType.WorkoutDetected(workoutMinutes.toInt()),
+                    message = "💪 ¡Entrenamiento detectado! Llevas ${workoutMinutes.toInt()} minutos de ejercicio hoy. Tu cuerpo te lo agradece.",
+                    priority = 0
+                )
+            )
+        }
+
+        // 5. Heavy desk work - ergonomic break reminder (MEDIUM PRIORITY)
+        val deskMinutes = activities
+            .filter { it.activityLabel in DESK_ACTIVITIES }
+            .sumOf { it.totalMinutes }
+        if (deskMinutes >= DESK_WORK_THRESHOLD) {
+            alerts.add(
+                Alert(
+                    type = AlertType.ErgonomicBreak(deskMinutes.toInt()),
+                    message = "🖥️ Llevas ${deskMinutes.toInt()} minutos escribiendo o tecleando. Recuerda estirar la espalda, el cuello y las muñecas para evitar tensiones.",
+                    priority = 2
+                )
+            )
+        }
+
+        // 6. Very high sedentary ratio (HIGH PRIORITY, only if not already covered by time-based alert)
+        if (sedentaryPct >= HIGH_SEDENTARY_RATIO && sedentaryMinutes < SEDENTARY_THRESHOLD) {
+            alerts.add(
+                Alert(
+                    type = AlertType.HighSedentaryRatio(sedentaryPct),
+                    message = "📊 El $sedentaryPct% de tu tiempo registrado ha sido sedentario. Intenta intercalar pequeños movimientos a lo largo del día.",
+                    priority = 2
+                )
+            )
+        }
+
+        // 7. Check for balanced activity (LOW PRIORITY)
         if (activePct in 20..40 && sedentaryPct < 70) {
             alerts.add(
                 Alert(
@@ -105,7 +159,7 @@ object AlertGenerator {
             )
         }
 
-        // 5. Add motivational messages to fill gaps
+        // 8. Add motivational messages to fill gaps
         val motivationalCount = when {
             alerts.isEmpty() -> 3 // No insights - show 3 motivational
             alerts.size == 1 -> 2 // 1 insight - add 2 motivational
