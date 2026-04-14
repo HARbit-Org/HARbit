@@ -109,20 +109,6 @@ object AlertGenerator {
             )
         }
 
-        // 4. Workout specifically detected (HIGHEST PRIORITY celebration)
-        val workoutMinutes = activities
-            .filter { it.activityLabel == "Workouts" }
-            .sumOf { it.totalMinutes }
-        if (workoutMinutes > 0) {
-            alerts.add(
-                Alert(
-                    type = AlertType.WorkoutDetected(workoutMinutes.toInt()),
-                    message = "💪 ¡Entrenamiento detectado! Llevas ${workoutMinutes.toInt()} minutos de ejercicio hoy. Tu cuerpo te lo agradece.",
-                    priority = 0
-                )
-            )
-        }
-
         // 5. Heavy desk work - ergonomic break reminder (MEDIUM PRIORITY)
         val deskMinutes = activities
             .filter { it.activityLabel in DESK_ACTIVITIES }
