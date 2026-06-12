@@ -26,7 +26,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.harbit.data.remote.dto.ProgressInsightDto
 import com.example.harbit.ui.components.Header
 import com.example.harbit.ui.theme.writeColor
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
@@ -115,8 +116,9 @@ private fun ProgressListItem(
     val overlineText: String
 
     val formattedDate = try {
-        val dateTime = LocalDateTime.parse(insight.createdAtStr, DateTimeFormatter.ISO_DATE_TIME)
-        dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        OffsetDateTime.parse(insight.createdAtStr)          // respeta el offset (+00:00 / Z) del backend
+            .atZoneSameInstant(ZoneId.systemDefault())      // convierte a la zona horaria del teléfono
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
     } catch (e: Exception) {
         insight.createdAtStr // Fallback al formato original si hay error
     }
